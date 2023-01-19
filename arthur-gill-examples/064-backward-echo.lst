@@ -1,0 +1,35 @@
+       1                                            .TITLE BACKWARD, ARTHUR GILL PAGE 64
+       2                                        ; ACCEPT A LINE OF CHARACTERS FROM TELETYPE AND ECHO IT BACKWARDS
+       3 000000                                 LC=.
+       4 000004                                 .=4+LC
+       5 000004 000006  000000  000012                  .WORD    6,0,12,0       ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+       6                                
+       7 000500                                 .=500+LC                        ; ALLOW FOR STACK SPACE
+       8 000500 010706                          START:  MOV     PC,SP
+       9 000502 005746                                  TST     -(SP)           ; INIT SP TO START
+      10                                        ;
+      11 177560                                 KBSTAT=177560
+      12 177562                                 KBDATA=177562
+      13 177564                                 PRSTAT=177564
+      14 177566                                 PRDATA=177566
+      15                                        ;
+      16 000504 012746  000015                          MOV     #15,-(SP)       ; CR CODE TO STACK
+      17 000510 012746  000012                          MOV     #12,-(SP)       ; LF CODE TO STACK
+      18 000514 105737  177560                  LOOP:   TSTB    KBSTAT          ; CHARACTER ENTERED?
+      19 000520 100375                                  BPL     LOOP            ; NO: KEEP IDLING
+      20 000522 013700  177562                          MOV     KBDATA,R0       ; (RO)=CHARACTER
+      21 000526 042700  177600                          BIC     #177600,R0      ; CLEAR ALL BUT CODE BITS
+      22 000532 020027  000015                          CMP     R0,#15          ; IS CHARACTER CR?
+      23 000536 001402                                  BEQ     OUT             ; IF SO, GO TO OUTPUT
+      24 000540 010046                                  MOV     R0,-(SP)        ; ELSE, PUSH CHARACTER ON STACK
+      25 000542 000764                                  BR      LOOP            ; AND RETURN FOR NEXT CHARACTER
+      26 000544 105737  177564                  OUT:    TSTB    PRSTAT          ; IS PRINTER READY?
+      27 000550 100375                                  BPL     OUT             ; IF NOT, KEEP IDLING
+      28 000552 012637  177566                          MOV     (SP)+,PRDATA    ; IF SO, POP NECT CHAR, AND PRINT
+      29 000556 020627  000500                          CMP     SP,#START       ; IS STACK EMPTY?
+      30 000562 001746                                  BEQ     START           ; IF SO, ACCEPT NEW LINE
+      31 000564 000767                                  BR      OUT             ; IF NOT, GO ON PRINTING
+      32                                
+      33                                                .END    START
+      33                                

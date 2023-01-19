@@ -1,0 +1,49 @@
+            .title xxx
+        lc=.
+        .=4+lc
+                .word    6,0,12,0           ; initialize error vectors
+        .=100+lc
+                .word    inthnd,300         ; initialize interrupt vector
+        .=500+lc                            ; allow for stack space
+        start:  mov     pc,sp
+                tst     -(sp)               ; init sp to start
+        ;
+        prdata=177566
+        clstat=177546
+        ;
+                ;;;mov     #100,@#clstat       ; set interrupt enable bit to 1
+                mov     #1,count            ; initialize tick count
+                mov     #0,pid
+                mov     #0,lpid
+                mov     #0,newch            : init newch value
+        ;
+        ;               (main program here)
+        main:   tst     newch               ; new char flag = 0 ?
+                bne     print               ; if not, goto print
+                br      main                ; if yes, wait
+        print:  add     #101,pid            ; add #100 to pid to get char value
+                mov     pid,@#prdata        ; print pid
+                mov     #0,newch            ; clear new char flag
+                br      main                ; repeat forever
+        ;
+        ;               interrupt handler
+        inthnd: dec     count               ; (count) = (count)-1
+                beq     nxtpid              ; if (count)=0, goto nxtpid
+                rti                         ; return from interrupt
+        nxtpid: mov     #50.,count          ; set count to 1 seconds
+                mov     #1,newch            ; assign new char flag
+                tst     lpid                ; is lpid=0?
+                beq     strpid              ; if yes start re-init pid loop
+                dec     lpid                ; if no, calc next pid
+                mov     lpid,pid            ; copy local to output pid
+                rti
+        strpid: mov     #2,lpid             ; re-init
+                mov     lpid,pid            ; copy local to output pid
+                rti                         ; return from interrupt
+        ;
+        count:  .blkw   1                   ; tick count
+        newch:  .blkw   1                   ; new char var.
+        lpid:   .blkw   1                   ; local pid in isr var.
+        pid:    .blkw   1                   ; pid in isr var.
+
+                .end    start

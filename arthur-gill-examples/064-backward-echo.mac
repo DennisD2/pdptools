@@ -1,0 +1,33 @@
+            .TITLE BACKWARD, ARTHUR GILL PAGE 64
+        ; ACCEPT A LINE OF CHARACTERS FROM TELETYPE AND ECHO IT BACKWARDS
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0       ; INITIALIZE ERROR VECTORS
+
+        .=500+LC                        ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)           ; INIT SP TO START
+        ;
+        KBSTAT=177560
+        KBDATA=177562
+        PRSTAT=177564
+        PRDATA=177566
+        ;
+                MOV     #15,-(SP)       ; CR CODE TO STACK
+                MOV     #12,-(SP)       ; LF CODE TO STACK
+        LOOP:   TSTB    KBSTAT          ; CHARACTER ENTERED?
+                BPL     LOOP            ; NO: KEEP IDLING
+                MOV     KBDATA,R0       ; (RO)=CHARACTER
+                BIC     #177600,R0      ; CLEAR ALL BUT CODE BITS
+                CMP     R0,#15          ; IS CHARACTER CR?
+                BEQ     OUT             ; IF SO, GO TO OUTPUT
+                MOV     R0,-(SP)        ; ELSE, PUSH CHARACTER ON STACK
+                BR      LOOP            ; AND RETURN FOR NEXT CHARACTER
+        OUT:    TSTB    PRSTAT          ; IS PRINTER READY?
+                BPL     OUT             ; IF NOT, KEEP IDLING
+                MOV     (SP)+,PRDATA    ; IF SO, POP NECT CHAR, AND PRINT
+                CMP     SP,#START       ; IS STACK EMPTY?
+                BEQ     START           ; IF SO, ACCEPT NEW LINE
+                BR      OUT             ; IF NOT, GO ON PRINTING
+
+                .END    START

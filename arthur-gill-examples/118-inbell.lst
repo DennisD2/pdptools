@@ -1,0 +1,34 @@
+       1                                            .TITLE INBELL, ARTHUR GILL PAGE 118
+       2                                        ; A BELL RINGS EVERY 10 SECONDS WHILE MAIN PROGRAM IS RUNNING
+       3                                        ; check line 27 (value 600 or 500, depending on 60Hz or 50Hz)
+       4                                        ; check line 17: I needed to comment this out, otherwise i get error vec 10 ?!?
+       5 000000                                 LC=.
+       6 000004                                 .=4+LC
+       7 000004 000006  000000  000012                  .WORD    6,0,12,0           ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+       8 000100                                 .=100+LC
+       9 000100 000514  000300                          .WORD    INTHND,300         ; INITIALIZE INTERRUPT VECTOR
+      10 000500                                 .=500+LC                            ; ALLOW FOR STACK SPACE
+      11 000500 010706                          START:  MOV     PC,SP
+      12 000502 005746                                  TST     -(SP)               ; INIT SP TO START
+      13                                        ;
+      14 177566                                 PRDATA=177566
+      15 177546                                 CLSTAT=177546
+      16                                        ;
+      17                                                ;;;MOV     #100,@#CLSTAT       ; SET INTERRUPT ENABLE BIT TO 1
+      18 000504 012737  000001  000542                  MOV     #1,COUNT            ; INITIALIZE TICK COUNT
+      19                                        ;
+      20                                        ;               (MAIN PROGRAM HERE)
+      21 000512 000777                          MAIN:   BR      MAIN
+      22                                        ;
+      23                                        ;               INTERRUPT HANDLER
+      24 000514 005337  000542                  INTHND: DEC     COUNT               ; (COUNT) = (COUNT)+1
+      25 000520 001401                                  BEQ     RING                ; IF (COUNT)=0, RING BELL
+      26 000522 000002                                  RTI                         ; RETURN FROM INTERRUPT
+      27 000524 012737  000101  177566          RING:   MOV     #101,@#PRDATA       ; RING BELL (ASCII CODE 007)
+      28 000532 012737  001130  000542                  MOV     #600.,COUNT          ; SET COUNT TO 10 SECONDS
+      29 000540 000002                                  RTI                         ; RETURN FROM INTERRUPT
+      30 000542                                 COUNT:  .BLKW   1                   ; TICK COUNT
+      31                                
+      32                                                .END    START
+      32                                

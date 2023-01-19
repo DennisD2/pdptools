@@ -1,0 +1,32 @@
+            .TITLE INBELL, ARTHUR GILL PAGE 118
+        ; A BELL RINGS EVERY 10 SECONDS WHILE MAIN PROGRAM IS RUNNING
+        ; check line 27 (value 600 or 500, depending on 60Hz or 50Hz)
+        ; check line 17: I needed to comment this out, otherwise i get error vec 10 ?!?
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0           ; INITIALIZE ERROR VECTORS
+        .=100+LC
+                .WORD    INTHND,300         ; INITIALIZE INTERRUPT VECTOR
+        .=500+LC                            ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)               ; INIT SP TO START
+        ;
+        PRDATA=177566
+        CLSTAT=177546
+        ;
+                ;;;MOV     #100,@#CLSTAT       ; SET INTERRUPT ENABLE BIT TO 1
+                MOV     #1,COUNT            ; INITIALIZE TICK COUNT
+        ;
+        ;               (MAIN PROGRAM HERE)
+        MAIN:   BR      MAIN
+        ;
+        ;               INTERRUPT HANDLER
+        INTHND: DEC     COUNT               ; (COUNT) = (COUNT)-1
+                BEQ     RING                ; IF (COUNT)=0, RING BELL
+                RTI                         ; RETURN FROM INTERRUPT
+        RING:   MOV     #101,@#PRDATA       ; RING BELL (ASCII CODE 007)
+                MOV     #600.,COUNT          ; SET COUNT TO 10 SECONDS
+                RTI                         ; RETURN FROM INTERRUPT
+        COUNT:  .BLKW   1                   ; TICK COUNT
+
+                .END    START

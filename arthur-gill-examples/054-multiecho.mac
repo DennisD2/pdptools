@@ -1,0 +1,49 @@
+            .TITLE MULTIECHO ARTHUR GILL PAGE 54
+        ; ECHO EACH TYPED-IN CHAR N TIMES. USE CIRCULAR BUFFER OF
+        ; 64 (DECIMAL) BYTES FOR STORING AWAITING CHARS
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+
+
+        .=500+LC                         ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)           ; INIT SP TO START
+        ;
+        KBSTAT=177560
+        KBDATA=177562
+        PRSTAT=177564
+        PRDATA=177566
+        ;
+                CLR     R0              ; INIT BUFFER INPUT POINTER
+                CLR     R1              ; INIT BUFFER OUTPUT POINTER
+                CLR     R2              ; INIT REPETITION COUNT
+        LOOP:   TSTB    KBSTAT          ; CHAR ENTERED?
+
+                BPL     ECHO            ; IF NOT, KEEP ECHOING
+                MOVB    KBDATA,BUFFER(R0)   ; IF SO, STORE CHAR IN BUFFER+(R0)
+
+                INC     R0              ; (R0)=(R0)+1
+                BIC     #177700,R0      ; ZERO R0 IF > 77
+
+        ECHO:   TST     R2              ; IF MULTIPLE ECHO TERMINATES,
+                BEQ     NEXT            ; PREPARE FOR NEXT OUTPUT CHAR
+                TSTB    PRSTAT          ; OTHERWISE, IS PRINTER READY?
+
+                BPL     LOOP            ; IF NOT, ACCEPT NEXT CHAR
+                MOVB    BUFFER(R1),PRDATA ; IF SO, ECHO OUTPUT CHAR
+
+                DEC     R2              ; (R2)=(R2)-1
+                BNE     LOOP            ; IF (R2).NE.0 ACCEPT NEXT CHAR
+                INC     R1              ; ELSE, (R1)=(R1)+1
+                BIC     #177700,R1      ; ZERO R1 IF > 77
+
+        NEXT:   CMP     R0,R1           ; IF (R0)=(R1) (BUFFER EMPTY)
+                BEQ     LOOP            ; ACCEPT NEXT CHAR
+                MOV     N,R2            ; (R2)=(N) (REPETITION COUNT)
+
+                BR      LOOP            ; ACCEPT NEXT CHAR
+        ;
+        N:      .WORD   5               ; REPETITION COUNT
+        BUFFER: .BLKB   64.             ; BUFFER SPACE: 64 DECIMAL BYTES
+                .END    START

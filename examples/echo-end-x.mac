@@ -1,0 +1,26 @@
+            .TITLE SIMPLE ECHO
+        ; ECHO EACH TYPED-IN CHAR
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+
+
+        .=500+LC                         ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)           ; INIT SP TO START
+        ;
+        KBSTAT=177560
+        KBDATA=177562
+        PRSTAT=177564
+        PRDATA=177566
+        ;
+        LOOP:   TSTB    KBSTAT          ; CHAR ENTERED?
+                BPL     LOOP            ; IF NOT, KEEP CHECKING
+                MOVB    KBDATA,R0       ; IF SO, KEEP CHAR
+                CMP     R0,#170         ; is char 'x'
+                BNE     WAIT            ; if no, continue
+                HALT                    ; if yes, stop execution
+        WAIT:   TSTB    PRSTAT          ; ECHO IT, IS PRINTER READY?
+                BPL     WAIT            ; IF NOT, KEEP CHECKING
+                MOVB    R0,PRDATA       ; IF SO, ECHO OUTPUT CHAR
+                BR      LOOP

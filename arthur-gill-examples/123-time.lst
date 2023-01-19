@@ -1,0 +1,181 @@
+       1                                            .TITLE TIME, ARTHUR GILL PAGE 123
+       2                                        ; IN RESPONSE TO THE PROGRAM'S QUERY "WHAT TIME IS IT?", THE USER
+       3                                        ; INITIALIZES THE INTERNAL CLOCK BY TYPING THE TIME AS A 4-DIGIT NUMBER
+       4                                        ; XXYY. THEREAFTER, WHENEVER A CHARACTER IS TYPED IN, THE PROGRAM PRINTS
+       5                                        ; OUT THE MESSAGE "AT THE BELL THE TIME WILL BE:" FOLLOWED BY THE TIME IN
+       6                                        ; THE FORMAT HH:MM:SS AND A BELL.
+       7 000000                                 LC=.
+       8 000004                                 .=4+LC
+       9 000004 000006  000000  000012                  .WORD    6,0,12,0           ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+      10 000060                                 .=60+LC
+      11 000060 000704  000340                          .WORD    KBINT,340          ; INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
+      12 000100                                 .=100+LC
+      13 000100 000632  000300                          .WORD    CLINT,300          ; INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
+      14 000500                                 .=500+LC                            ; ALLOW FOR STACK SPACE
+      15 000500 010706                          START:  MOV     PC,SP
+      16 000502 005746                                  TST     -(SP)               ; INIT SP TO START
+      17                                        ;
+      18 177560                                 KBSTAT=177560
+      19 177562                                 KBDATA=177562
+      20 177564                                 PRSTAT=177564
+      21 177566                                 PRDATA=177566
+      22 177546                                 CLSTAT=177546
+      23                                        ;
+      24                                        ; PRINT QUERY
+      25 000504 012700  001126                          MOV     #QUERY,R0           ; SET PARAMETERS
+      26 000510 012701  001150                          MOV     #ENDQ,R1            ;       FOR PRINT SUBROUTINE
+      27 000514 004737  001012                          JSR     PC,PRINT            ; PRINT LF, CR, QUERY TEXT
+      28                                        ; ACCEPT AND ECHO INITIAL TIME XXYY
+      29 000520 012702  000004                          MOV     #4,R2               ; (R2)=DIGIT COUNT
+      30 000524 012700  001222                          MOV     #ITIME,R0           ; SET PARAMETERS
+      31 000530 010001                          NEXTD:  MOV     R0,R1               ;       FOR PRINT SUBROUTINE
+      32 000532 105737  177560                          TSTB    KBSTAT              ; CHARACTER ENTERED?
+      33 000536 100375                                  BPL     .-4                 ; IF NOT, KEEP TESTING
+      34 000540 113710  177562                          MOVB    KBDATA,(R0)         ; ELSE, STORE DIGIT IN ITIME ARRAY
+      35 000544 142710  000200                          BICB    #200,(R0)           ; REMOVE CHECK BIT FROM DIGIT
+      36 000550 004737  001012                          JSR     PC,PRINT            ; PRINT DIGIT
+      37 000554 005200                                  INC     R0                  ; (R0)=(R0)+1
+      38 000556 005302                                  DEC     R2                  ; (R2)=(R2)-1
+      39 000560 001363                                  BNE     NEXTD               ; IF (R2) NOT 0, ACCEPT NEXT DIGIT
+      40                                        ; CONVERT INITIAL HOURS (XX) TO BINARY
+      41 000562 113700  001223                          MOVB    ITIME+1,R0          ; SET PARAMETERS
+      42 000566 113701  001222                          MOVB    ITIME,R1            ;       FOR INCON SUBROUTINE
+      43 000572 004737  001036                          JSR     PC,INCON            ; CONVERT XX TO BINARY
+      44 000576 010237  001226                          MOV     R2,HOUR             ;     AND STORE IN HOUR
+      45                                        ; CONVERT INITIAL MINUTES (YY) TO BINARY
+      46 000602 113700  001225                          MOVB    ITIME+3,R0          ; SET PARAMETERS
+      47 000606 113701  001224                          MOVB    ITIME+2,R1          ;       FOR INCON SUBROUTINE
+      48 000612 004737  001036                          JSR     PC,INCON            ; CONVERT XX TO BINARY
+      49 000616 010237  001230                          MOV     R2,MIN              ;     AND STORE IN MIN
+      50                                        ; SET INTERRUPT ENABLE BITS TO 1 AND WAIT
+      51 000622 012737  000100  177560                  MOV     #100,KBSTAT         ; SET KEYBOARD INTR. ENBLE BIT TO 1
+      52                                                ;;;MOV     #100,CLSTAT         ; SET CLOCK INTR. ENBLE BIT TO 1
+      53 000630 000777                          LOOP:   BR      LOOP                ; WAIT FOR INTERRUPTS
+      54                                        ;
+      55                                        ;               CLOCK INTERRUPT HANDLER
+      56                                        ; UPDATES TIME EVERY 1/60 SECOND
+      57 000632 012704  001234                  CLINT:  MOV     #TICK,R4            ; SET PARAMETER FOR UPDATE S.R.
+      58 000636 004737  000662                          JSR     PC,UPDATE           ; UPDATE CLOCK COUNT
+      59 000642 023727  001226  000014                  CMP     HOUR,#12.           ; IS (HOUR)=12., OR LESS?
+      60 000650 003403                                  BLE     EXIT3               ; IF SO, TIME UPDATE IS COMPLETE
+      61 000652 162737  000014  001226                  SUB     #12.,HOUR           ; ELSE, CORRECT FOR 12-HOUR CLOCK
+      62 000660 000002                          EXIT3:  RTI                         ; RETURN FROM INTERRUPT
+      63                                        ;               UPDATE (RECURSIVE SUBROUTINE)
+      64                                        ; UPDATES TICK, SEC, MIN AND HOUR. ADDRESS OF UPDATED FIELD IS IN R4.
+      65 000662 005214                          UPDATE: INC     (R4)                ; ((R4))=((R4))+1
+      66 000664 021427  000074                          CMP     (R4),#60.           ; ((R4))=60.?
+      67 000670 001004                                  BNE     EXIT4               ; IF NOT, UPDATING IS COMPLETE
+      68 000672 005014                                  CLR     (R4)                ; ELSE, ((R4))=0 (RESET COUNT)
+      69 000674 005744                                  TST     -(R4)               ; (R4)=(R4)-2 (GO TO NEXT FIELD)
+      70 000676 004737  000662                          JSR     PC,UPDATE           ; UPDATE NEXT FIELD
+      71 000702 000207                          EXIT4:  RTS     PC                  ; EXIT
+      72                                        ;
+      73                                        ;               KEYBOARD INTERRUPT HANDLER
+      74                                        ; PRINTS OUT TIME WHENEVER A CHARACTER IS TYPED IN.
+      75 000704 012700  001236                  KBINT:  MOV     #TEMP,R0            ; SAVE LATEST
+      76 000710 013720  001226                          MOV     HOUR,(R0)+          ;    HOUR, MIN AND SEC
+      77 000714 013720  001230                          MOV     MIN,(R0)+           ;       IN TEMP ARRAY TO
+      78 000720 013710  001232                          MOV     SEC,(R0)            ;          PROTECT FROM CLINT
+      79 000724 005027  177776                          CLR     #177776             ; LOWER PRIORITY TO ACCEPT CLINT
+      80                                        ; PRINT MESSAGE
+      81 000730 012700  001151                          MOV     #MESSG,R0           ; SET PARAMETERS
+      82 000734 012701  001210                          MOV     #ENDM,R1            ;       FOR PRINT SUBROUTINE
+      83 000740 004737  001012                          JSR     PC,PRINT            ; PRINT LF, CR, MESSAGE TEXT
+      84                                        ; CONVERT HOUR, MIN AND SEC TO ASCII
+      85 000744 012702  001236                          MOV     #TEMP,R2            ; SET PARAMETERS
+      86 000750 012703  001211                          MOV     #OUTPUT,R3          ;       FOR OUTCON SUBROUTINE
+      87 000754 004737  001064                          JSR     PC,OUTCON           ; CONVERT HOUR TO ASCII (HH)
+      88 000760 004737  001064                          JSR     PC,OUTCON           ; CONVERT MIN TO ASCII (MM)
+      89 000764 004737  001064                          JSR     PC,OUTCON           ; CONVERT SEC TO ASCII (SS)
+      90                                        ; PRINT OUT HH:MM:SS AND RING BELL
+      91 000770 012700  001211                          MOV     #OUTPUT,R0          ; SET PARAMETERS
+      92 000774 012701  001221                          MOV     #ENDO,R1            ;       FOR PRINT SUBROUTINE
+      93 001000 004737  001012                          JSR     PC,PRINT            ; PRINT OUTPUT ARRAY
+      94 001004 005737  177562                          TST     KBDATA              ; CLEAR READY BIT IN KBSTST
+      95 001010 000002                                  RTI                         ; RETURN FROM INTERRUPT
+      96                                        ;
+      97                                        ;               PRINT
+      98                                        ; PRINTS STRING OF CHARACTERS STARTING AT (R0) AND END AR (R1)
+      99                                        ; CHANGES R5 ONLY
+     100 001012 010005                          PRINT:  MOV     R0,R5               ; (R5)=CHARACTER ARRAY INDEX
+     101 001014 020501                          AGAIN:  CMP     R5,R1               ; HAS STRING ENDED?
+     102 001016 101006                                  BHI     EXIT1               ; IF SO, EXIT
+     103 001020 105737  177564                          TSTB    PRSTAT              ; IS PRINTER READY?
+     104 001024 100375                                  BPL     .-4                 ; IF NOT, KEEP TESTING
+     105 001026 112537  177566                          MOVB    (R5)+,PRDATA        ; ELSE, PRINT (R5). (R5)=(R5)+1
+     106 001032 000770                                  BR      AGAIN               ; PICK UP NEXT CHARACTER
+     107 001034 000207                          EXIT1:  RTS     PC                  ; EXIT
+     108                                        ;
+     109                                        ;               INCON
+     110                                        ; CONVERTS A 2-DIGIT DECIMAL NUMBER STORED IN ASCII IN R0 (UNITS) AND
+     111                                        ; R1 (TENS) INTO BINARY, THE RESULT IS PLACED IN R2, R3, R4, R5 UNCHANGED.
+     112 001036 042700  177760                  INCON:  BIC     #177760,R0          ; CONVERT (R0) INTO BINARY
+     113 001042 010002                                  MOV     R0,R2               ;     AND STORE IN R2
+     114 001044 120127  000060                  TENS:   CMPB    R1,#'0              ; (R1)='0? (ANY TENS LEFT?)
+     115 001050 001404                                  BEQ     EXIT2               ; IF NOT, EXIT
+     116 001052 062702  000012                          ADD     #10.,R2             ; ELSE, (R2)=(R2)+10 DECIMAL
+     117 001056 005301                                  DEC     R1                  ; (R1)=(R1)-1 (1 TEN LESS)
+     118 001060 000771                                  BR      TENS                ; CHECK FOR TENS AGAIN
+     119 001062 000207                          EXIT2:  RTS     PC                  ; EXIT
+     120                                        ;
+     121                                        ;               OUTCON
+     122                                        ; CONVERTS A BINARY NUMBER N (FROM 0 TO 60 DECIMAL) INTO A 2-DIGIT
+     123                                        ; ASCII NUMBER PQ. ADDRESS OF IN IS (R2). ADDRESSES OF P AND Q ARE (R3)
+     124                                        ; AND (R3)+1. BEFORE EXIT THE CONTENTS OF R1 IS INCREMENTED BY 2 AND OF
+     125                                        ; R3 BY 3. R4 AND R5 ARE UNCHANGED.
+     126 001064 012200                          OUTCON: MOV     (R2)+,R0            ; (R0)=BINARY NUMBER (HOUR, MIN, SEC)
+     127 001066 005001                                  CLR     R1                  ; INITIALIZE TENS
+     128 001070 020027  000012                  MORE:   CMP     R0,#10.            ; ANY TENS LEFT IN R0?
+     129 001074 002404                                  BLT     UNITS               ; IF NONE, PROCESS UNITS
+     130 001076 005201                                  INC     R1                  ; ELSE, (R1)=(R1)+1 (ONE MORE TEN)
+     131 001100 162700  000012                          SUB     #10.,R0             ; (R0)=(R0)-10 DECIMAL
+     132 001104 000771                                  BR      MORE                ; CHECK FOR MORE TENS
+     133 001106 062701  000060                  UNITS:  ADD     #'0,R1              ; CONVERT TENS TO ASCII
+     134 001112 062700  000060                          ADD     #'0,R0              ; CONVERT UNITS TO ASCII
+     135 001116 110123                                  MOVB    R1,(R3)+            ; STORE TENS IN OUTPUT ARRAY
+     136 001120 110023                                  MOVB    R0,(R3)+            ; STORE UNITS IN OUTPUT ARRAY
+     137 001122 005203                                  INC     R3                  ; SKIP COLON BYTE
+     138 001124 000207                                  RTS     PC                  ; EXIT
+     139                                        ;
+     140                                        ;       STORAGE FOR CONSTANTS AND TEMPORARIES
+     141                                        ;
+     142 001126    015     012                  QUERY:  .BYTE   15,12               ; CR, LF
+     143 001130    127     110     101                  .ASCII  /WHAT TIME IS IT?/  ; QUERY TEXT
+         001133    124     040     124  
+         001136    111     115     105  
+         001141    040     111     123  
+         001144    040     111     124  
+         001147    077                  
+     144 001150    040                          ENDQ:   .ASCII  / /                 ; END OF QUERY (SPACE)
+     145                                        ;
+     146 001151    015     012                  MESSG:  .BYTE   15,12               ; CR, LF
+     147 001153    101     124     040                  .ASCII  /AT THE BELL THE TIME WILL BE:/ ; MESSAGE TEXT
+         001156    124     110     105  
+         001161    040     102     105  
+         001164    114     114     040  
+         001167    124     110     105  
+         001172    040     124     111  
+         001175    115     105     040  
+         001200    127     111     114  
+         001203    114     040     102  
+         001206    105     072          
+     148 001210    040                          ENDM:   .ASCII  / /                 ; END OF MESSAGE (SPACE)
+     149                                        ;
+     150 001211    110     110     072          OUTPUT: .ASCII  /HH:MM:SS/          ; STORAGE FOR HH:MM:SS
+         001214    115     115     072  
+         001217    123     123          
+     151 001221    007                          ENDO:   .BYTE   7                   ; END OF OUTPUT (BELL)
+     152                                        ;
+     153 001222                                 ITIME:  .BLKB   4                   ; STORAGE FOR INITIAL TIME (XXYY)
+     154                                        ;
+     155                                                .EVEN                       ; ADJUST WORD BOUNDARY
+     156 001226                                 HOUR:   .BLKW   1                   ; STORAGE FOR HOURS (BINARY)
+     157 001230                                 MIN:    .BLKW   1                   ; STORAGE FOR MINUTES (BINARY)
+     158 001232 000000                          SEC:    .WORD   0                   ; STORAGE FOR SECONDS (BINARY)
+     159 001234 000000                          TICK:   .WORD   0                   ; STORAGE FOR TICK COUNT (BINARY)
+     160 001236                                 TEMP:   .BLKW   3                   ; TEMP. STORAGE FOR HOUR, MIN, SEC (BINARY)
+     161                                
+     162                                
+     163                                                .END    START
+     163                                

@@ -1,0 +1,28 @@
+       1                                            .TITLE SIMPLE ECHO
+       2                                        ; ECHO EACH TYPED-IN CHAR
+       3 000000                                 LC=.
+       4 000004                                 .=4+LC
+       5 000004 000006  000000  000012                  .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+       6                                
+       7                                
+       8 000500                                 .=500+LC                         ; ALLOW FOR STACK SPACE
+       9 000500 010706                          START:  MOV     PC,SP
+      10 000502 005746                                  TST     -(SP)           ; INIT SP TO START
+      11                                        ;
+      12 177560                                 KBSTAT=177560
+      13 177562                                 KBDATA=177562
+      14 177564                                 PRSTAT=177564
+      15 177566                                 PRDATA=177566
+      16                                        ;
+      17 000504 105737  177560                  LOOP:   TSTB    KBSTAT          ; CHAR ENTERED?
+      18 000510 100375                                  BPL     LOOP            ; IF NOT, KEEP CHECKING
+      19 000512 113700  177562                          MOVB    KBDATA,R0       ; IF SO, KEEP CHAR
+      20 000516 020027  000170                          CMP     R0,#170         ; is char 'x'
+      21 000522 001001                                  BNE     WAIT            ; if no, continue
+      22 000524 000000                                  HALT                    ; if yes, stop execution
+      23 000526 105737  177564                  WAIT:   TSTB    PRSTAT          ; ECHO IT, IS PRINTER READY?
+      24 000532 100375                                  BPL     WAIT            ; IF NOT, KEEP CHECKING
+      25 000534 110037  177566                          MOVB    R0,PRDATA       ; IF SO, ECHO OUTPUT CHAR
+      26 000540 000761                                  BR      LOOP
+      26                                

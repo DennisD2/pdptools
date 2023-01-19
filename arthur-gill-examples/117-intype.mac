@@ -1,0 +1,25 @@
+            .TITLE INTYPE, ARTHUR GILL PAGE 117
+        ; INTERRUPT DRIVEN ECHO PROGRAM
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0           ; INITIALIZE ERROR VECTORS
+        .=60+LC
+                .WORD    INTHND,200         ; INITIALIZE INTERRUPT VECTOR
+        .=500+LC                            ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)               ; INIT SP TO START
+        ;
+        KBSTAT=177560
+        KBDATA=177562
+        PRDATA=177566
+        ;
+                MOV     #100,@#KBSTAT       ; SET INTERRUPT ENABLE BIT TO 1
+        ;
+        ;               (MAIN PROGRAM HERE)
+        MAIN:   BR      MAIN
+        ;
+        ;               INTERRUPT HANDLER
+        INTHND: MOV     @#KBDATA,@#PRDATA   ; PRINT INPUT CHARACTER
+                RTI                         ; RETURN FROM INTERRUPT
+
+                .END    START

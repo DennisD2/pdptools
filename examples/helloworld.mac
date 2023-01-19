@@ -1,0 +1,23 @@
+        .title  HELLO WORLD
+        .ident "V00.00"
+
+        .asect
+        .=500
+msg:    .asciz /Hello, world!/
+
+        .asect
+        .=1000
+
+HELLO:  MOV     #msg,R1         ; STARTING ADDRESS OF STRING
+
+AGAIN:  MOVB    (R1)+,R0        ; FETCH NEXT CHARACTER
+        BEQ     DONE            ; IF ZERO, EXIT LOOP
+
+WAIT:	TSTB 	176746 		    ; is printer free?
+        BPL	    WAIT		    ; if not, wait
+
+        MOV	    R0,176742	    ; else print (R0)
+        BR      AGAIN           ; REPEAT LOOP
+
+DONE:   halt
+

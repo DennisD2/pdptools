@@ -1,0 +1,33 @@
+            .TITLE DIVISION TEST
+        ;
+        ;
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+        ;
+        .=500+LC                         ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)            ; INIT SP TO START
+        ;
+        ;               MAIN PROGRAM
+        ; SET EXAMPLE VALUES FOR DIV EXECUTION
+        ;        MOV     #125252,R0      ; 125252 = 0xAAAA
+        ;        MOV     #125,R1         ; 125 = 0x55 RESULT = 1002o
+        ;        MOV     #45454,R0       ;
+        ;        MOV     #454,R1         ; RESULT = 100o
+        ;        MOV     #15015.,R0      ;
+        ;        MOV     #0.,R2          ;
+        ;        MOV     #15.,R3         ; RESULT = 1001d = 1751o
+                MOV     #2,R0           ;
+                MOV     #3,R2           ;
+        ;
+                MUL     R0,R2           ; R2.R3 = R0*R2 (32 bit)
+                INC     R3
+                DIV     R0,R2           ; R2 = R2.R3/R0 (32 bit); R3=remainings
+
+                MOV     #2,R1
+                MOV     #3,R3
+                MUL     R1,R3           ; R3=R1*R3 (16 bit)
+        ;
+        STOP:   HALT
+                .END    START

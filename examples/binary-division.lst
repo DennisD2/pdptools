@@ -1,0 +1,51 @@
+       1                                            .TITLE BINARY DIVISION
+       2                                        ; EXECUTES BINARY DIVISION FOR WORDS. R2=R0/R1
+       3                                        ; USED REGISTERS: R0,R1,R2,R3
+       4                                        ;
+       5 000000                                 LC=.
+       6 000004                                 .=4+LC
+       7 000004 000006  000000  000012                  .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+       8                                        ;
+       9 000500                                 .=500+LC                         ; ALLOW FOR STACK SPACE
+      10 000500 010706                          START:  MOV     PC,SP
+      11 000502 005746                                  TST     -(SP)            ; INIT SP TO START
+      12                                        ;
+      13                                        ;               MAIN PROGRAM
+      14                                        ; SET EXAMPLE VALUES FOR DIV EXECUTION
+      15 000504 012700  125252                          MOV     #125252,R0      ; 125252 = 0xAAAA
+      16 000510 012702  000125                          MOV     #125,R2         ; 125 = 0x55 RESULT = 1002o
+      17 000514 012700  045454                          MOV     #45454,R0       ;
+      18 000520 012702  000454                          MOV     #454,R2         ; RESULT = 100o
+      19 000524 012700  035247                          MOV     #15015.,R0      ;
+      20 000530 012701  000017                          MOV     #15.,R1         ; RESULT = 1001d = 1751o
+      21                                        ;
+      22                                        ;               DIVISION SUBROUTINE
+      23                                        ; EXECUTES BINARY DIVISION FOR WORDS. R2=R0/R1
+      24                                        ; USED REGISTERS: R0,R1,R2,R3
+      25                                        ; R0: DIVIDEND
+      26                                        ; R1: DIVISOR
+      27                                        ; R2: RESULT
+      28                                        ; R3: HELP REGISTER
+      29 000534 005003                          DIV:    CLR     R3              ; CLEAR HELP REGISTER
+      30 000536 005002                                  CLR     R2              ; CLEAR RESULT
+      31 000540 005202                                  INC     R2              ; SET BIT1 TO 1
+      32                                        ;
+      33 000542 000241                          DIVA:   CLC                     ; CLEAR CARRY
+      34 000544 006100                                  ROL     R0              ; ROTATE LEFT, MSB GOES TO CARRY
+      35 000546 006103                                  ROL     R3              ; ROLL IN CARRY TO LSB OF R3
+      36 000550 103402                                  BCS     DIVB            ; A ONE WS ROLLED, GO TO SUBTRACT
+      37 000552 020301                                  CMP     R3,R1           ; DIVISION RESULT 0 OR 1?
+      38 000554 103404                                  BCS     DIVC            ; DO NOT SUBTRACT IF < 0  (RESULT DIGIT IS THEN 0)
+      39                                        ;
+      40 000556 160103                          DIVB:   SUB     R1,R3           ; SUBTRACT R1/DIVISOR FROM HELP REGISTER
+      41 000560 000261                                  SEC                     ; SET CARRY BIT (RESULT DIGIT IS A 1)
+      42 000562 000137  000570                          JMP     DIVD            ; GO TO 'ROTATE RESULT'
+      43                                        ;
+      44 000566 000241                          DIVC:   CLC                     ; CLEAR CARRY, RESULT IS A 0
+      45                                        ;
+      46 000570 006102                          DIVD:   ROL     R2              ; ROTATE CARRY INTO RESULT
+      47 000572 103363                                  BCC     DIVA            ; AS LONG AS 0 FROM ROTATE OUT OF RESULT, CONTINUE
+      48                                        ;
+      49 000574 000000                          STOP:   HALT
+      49                                                .END    START

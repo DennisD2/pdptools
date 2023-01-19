@@ -1,0 +1,17 @@
+       1                                        .TITLE  A to Z to memory - Arthur Gill Page 40
+       2                                        .IDENT "V00.00"
+       3                                
+       4                                        .asect
+       5 000600                                 .=600
+       6                                
+       7 000600 012700  000101                  mov     #101,r0 	; initialize char to A
+       8 000604 012701  001200                  mov     #1200,r1 	; initialize byte address to 1200
+       9                                
+      10 000610 110021                  AGAIN:  movb    r0,(r1)+    ; store char, increment address
+      11 000612 020027  000132                  cmp     r0,#132     ; is char Z ?
+      12 000616 001402                          beq     EXIT        ; if so, all done
+      13 000620 005200                          inc     r0          ; else, form next char
+      14 000622 000772                          br      AGAIN       ; return for another
+      15                                
+      16 000624 000000                  EXIT:   halt
+      16                                

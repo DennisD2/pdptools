@@ -1,0 +1,51 @@
+       1                                            .TITLE MULTIECHO ARTHUR GILL PAGE 54
+       2                                        ; ECHO EACH TYPED-IN CHAR N TIMES. USE CIRCULAR BUFFER OF
+       3                                        ; 64 (DECIMAL) BYTES FOR STORING AWAITING CHARS
+       4 000000                                 LC=.
+       5 000004                                 .=4+LC
+       6 000004 000006  000000  000012                  .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+       7                                
+       8                                
+       9 000500                                 .=500+LC                         ; ALLOW FOR STACK SPACE
+      10 000500 010706                          START:  MOV     PC,SP
+      11 000502 005746                                  TST     -(SP)           ; INIT SP TO START
+      12                                        ;
+      13 177560                                 KBSTAT=177560
+      14 177562                                 KBDATA=177562
+      15 177564                                 PRSTAT=177564
+      16 177566                                 PRDATA=177566
+      17                                        ;
+      18 000504 005000                                  CLR     R0              ; INIT BUFFER INPUT POINTER
+      19 000506 005001                                  CLR     R1              ; INIT BUFFER OUTPUT POINTER
+      20 000510 005002                                  CLR     R2              ; INIT REPETITION COUNT
+      21 000512 105737  177560                  LOOP:   TSTB    KBSTAT          ; CHAR ENTERED?
+      22                                
+      23 000516 100006                                  BPL     ECHO            ; IF NOT, KEEP ECHOING
+      24 000520 113760  177562  000602                  MOVB    KBDATA,BUFFER(R0)   ; IF SO, STORE CHAR IN BUFFER+(R0)
+      25                                
+      26 000526 005200                                  INC     R0              ; (R0)=(R0)+1
+      27 000530 042700  177700                          BIC     #177700,R0      ; ZERO R0 IF > 77
+      28                                
+      29 000534 005702                          ECHO:   TST     R2              ; IF MULTIPLE ECHO TERMINATES,
+      30 000536 001413                                  BEQ     NEXT            ; PREPARE FOR NEXT OUTPUT CHAR
+      31 000540 105737  177564                          TSTB    PRSTAT          ; OTHERWISE, IS PRINTER READY?
+      32                                
+      33 000544 100362                                  BPL     LOOP            ; IF NOT, ACCEPT NEXT CHAR
+      34 000546 116137  000602  177566                  MOVB    BUFFER(R1),PRDATA ; IF SO, ECHO OUTPUT CHAR
+      35                                
+      36 000554 005302                                  DEC     R2              ; (R2)=(R2)-1
+      37 000556 001355                                  BNE     LOOP            ; IF (R2).NE.0 ACCEPT NEXT CHAR
+      38 000560 005201                                  INC     R1              ; ELSE, (R1)=(R1)+1
+      39 000562 042701  177700                          BIC     #177700,R1      ; ZERO R1 IF > 77
+      40                                
+      41 000566 020001                          NEXT:   CMP     R0,R1           ; IF (R0)=(R1) (BUFFER EMPTY)
+      42 000570 001750                                  BEQ     LOOP            ; ACCEPT NEXT CHAR
+      43 000572 013702  000600                          MOV     N,R2            ; (R2)=(N) (REPETITION COUNT)
+      44                                
+      45 000576 000745                                  BR      LOOP            ; ACCEPT NEXT CHAR
+      46                                        ;
+      47 000600 000005                          N:      .WORD   5               ; REPETITION COUNT
+      48 000602                                 BUFFER: .BLKB   64.             ; BUFFER SPACE: 64 DECIMAL BYTES
+      49                                                .END    START
+      49                                

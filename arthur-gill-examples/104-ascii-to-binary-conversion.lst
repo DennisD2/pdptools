@@ -1,0 +1,115 @@
+       1                                            .TITLE ASCTOBIN ARTHUR GILL PAGE 104
+       2                                        ; CONVERTS A TYPED IN DECIMAL NUMBER N INTO ITS BINARY EQUIVALENT
+       3                                        ; N MAY BE PREFIXED WITH + OR - AND MUST BE FOLLOWED BY A CARRIAGE RETURN.
+       4                                        ; THE BINARY EQUIVALENT OF N IS LEFT IN R2- IF N'S MAGNITUDE EXCEEDS
+       5                                        ; 32767 BYTES, R2 WILL BE LEFT WITH 100000 OCTAL.
+       6                                
+       7 000000                                 LC=.
+       8 000004                                 .=4+LC
+       9 000004 000006  000000  000012                  .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+      10                                
+      11 000500                                 .=500+LC                         ; ALLOW FOR STACK SPACE
+      12 000500 010706                          START:  MOV     PC,SP
+      13 000502 005746                                  TST     -(SP)           ; INIT SP TO START
+      14                                        ;
+      15 177560                                 KBSTAT=177560
+      16 177562                                 KBDATA=177562
+      17 177564                                 PRSTAT=177564
+      18 177566                                 PRDATA=177566
+      19 000012                                 LF=12
+      20 000015                                 CR=15
+      21                                        ;
+      22                                        ;               MAIN PROGRAM
+      23 000504 012703  000752                          MOV     #STRING,R3      ; (R3)=STRING
+      24 000510 004737  000526                          JSR     PC,INPUT        ; STORE INPUT STRING IN ARRAY
+      25 000514 012703  000752                          MOV     #STRING,R3      ; (R3)=STRING
+      26 000520 004737  000606                          JSR     PC,ATOB         ; CONVERT STRING INTO BINARY
+      27 000524 000000                                  HALT
+      28                                        ;
+      29                                
+      30                                        ;               INPUT
+      31                                        ; ECHOES TYPED-IN CHARACTERS AND STORES THEM IN BYTE ARRAY WHOSE BASE
+      32                                        ; ADDRESS IS IN R3. EXITS AFTER CR IS TYPED. CHANGES R3, R5.
+      33 000526 105737  177560                  INPUT:  TSTB    KBSTAT          ; IS CHARACTER IN?
+      34 000532 100375                                  BPL     INPUT           ; IF NOT, WAIT
+      35 000534 013705  177562                          MOV     KBDATA,R5       ; (R5)=CHARACTER
+      36 000540 004737  000572                          JSR     PC,PRINT        ; PRINT CHARACTER
+      37 000544 042705  177600                          BIC     #177600,R5      ; REMOVE CHECK BIT
+      38 000550 110523                                  MOVB    R5,(R3)+        ; STORE CHAR IN ARRAY, UPDATE INDEX
+      39 000552 022705  000015                          CMP     #CR,R5          ; IS CHARACTER CR?
+      40 000556 001363                                  BNE     INPUT           ; IF NOT, ACCEPT NEXT CHARACTER
+      41 000560 012705  000012                          MOV     #LF,R5          ; ELSE,
+      42 000564 004737  000572                          JSR     PC,PRINT        ;       MOVE TO NEXT LINE
+      43 000570 000207                                  RTS     PC              ; EXIT
+      44                                        ;
+      45                                        ;               PRINT
+      46                                        ; PRINTS CONTENT OF R5, REGISTERS UNCHANGED.
+      47 000572 105737  177564                  PRINT:  TSTB    PRSTAT          ; IS PRINTER READY?
+      48 000576 100375                                  BPL     PRINT           ; IF NOT, WAIT
+      49 000600 010537  177566                          MOV     R5,PRDATA       ; IF SO, PRINT (R5)
+      50 000604 000207                                  RTS     PC              ; EXIT
+      51                                        ;
+      52                                        ;               ATOB
+      53                                        ; CONVERTS INTO BINARY A DECIMAL NUMBER N STORED IN ASCII IN BYTE ARRAY
+      54                                        ; WHOSE BASE ADDRESS IS IN R3. N MAY BE PREFIXED WITH + OR - AND MUST BE
+      55                                        ; FOLLOWED BY A NON-DIGIT. THE BINARY EQUIVALENT OF N IS LEFT IN R2. IF
+      56                                        ; N'S MAGNITUDE EXCEEDS 32767 DECIMAL, R2 IS LEFT WITH 100000 OCTAL.
+      57                                        ; REGISTER ALLOCATION:
+      58                                        ;       (R0), (R1) ARE USED FOR INPUTTING MUL PARAMETERS
+      59                                        ;       (R2) = CONVERTED NUMBER
+      60                                        ;       (R3) = POINTER TO NEXT CHARACTER
+      61                                        ;       (R4) = SCANNED CHARACTER
+      62                                        ;       (R5) = SIGN FLAG (0 IF N IS POSITIVE, 1 OTHERWISE)
+      63 000606 005005                          ATOB:   CLR     R5              ; ZERO SIGN FLAG (ASSUME N POSITIVE)
+      64 000610 112304                                  MOVB    (R3)+,R4        ; (R4)=SCANNED CHARACTER, UPDATE INDEX
+      65 000612 122704  000053                          CMPB    #'+,R4          ; IS CHARACTER +?
+      66 000616 001406                                  BEQ     ATOB2           ; IF SO, START CONVERTING
+      67 000620 122704  000055                          CMPB    #'-,R4          ; IS CHARACTER -?
+      68 000624 001002                                  BNE     ATOB1           ; IF NOT, N IS UNSIGNED
+      69 000626 005205                                  INC     R5              ; IF SO, SET SIGN FLAG FOR NEGATIVE N
+      70 000630 000401                                  BR      ATOB2           ; START CONVERTING
+      71 000632 005303                          ATOB1:  DEC     R3              ; CHARACTER IS DIGIT. BACKTRACK
+      72 000634 005002                          ATOB2:  CLR     R2              ; INITIALIZE RESULT TO 0
+      73 000636 112304                          ATOB3:  MOVB    (R3)+,R4        ; (R4)=SCANNED CHARACTER, UPDATE INDEX
+      74 000640 122704  000060                          CMPB    #'0,R4          ; IF '0>(R4)' (NONDIGIT)
+      75 000644 101016                                  BHI     ATOB4           ;     PREPARE FOR EXIT
+      76 000646 122704  000071                          CMPB    #'9,R4          ; IF '9<(R4)' (NONDIGIT)
+      77 000652 103413                                  BLO     ATOB4           ;     PREPARE FOR EXIT
+      78 000654 042704  177760                          BIC     #177760,R4      ; CONVERT DIGIT TO BINARY
+      79 000660 012700  000012                          MOV     #10.,R0         ; (R0)=10 (MUL PARAMETER)
+      80 000664 010201                                  MOV     R2,R1           ; (R2)=(R1) (MUL PARAMETER)
+      81 000666 004737  000720                          JSR     PC,MUL          ; (R2)=(R0)*(R1)=10.*(R2)
+      82 000672 102407                                  BVS     ATOB6           ; IF OVERFLOW, PREPARE FOR EXIT
+      83 000674 060402                                  ADD     R4,R2           ; (R2)=(R4)+(R2)
+      84 000676 102405                                  BVS     ATOB6           ; IF OVERFLOW, PREPARE FOR EXIT
+      85 000700 000756                                  BR      ATOB3           ; SCAN NEXT CHARACTER
+      86                                        ; NORMAL EXIT
+      87 000702 005705                          ATOB4:  TST     R5              ; TEST SIGN FLAG
+      88 000704 001401                                  BEQ     ATOB5           ; IF NUMBER IS PROSITIVE, EXIT
+      89 000706 005402                                  NEG     R2              ; ELSE, (R2)=-(R2)
+      90 000710 000207                          ATOB5:  RTS     PC              ; EXIT
+      91                                        ; OVERFLOW EXIT
+      92 000712 012702  100000                  ATOB6:  MOV     #100000,R2      ; (R2)=100000
+      93 000716 000207                                  RTS     PC
+      94                                        ;
+      95                                        ;               MUL
+      96                                        ; COMPUTES (R0)*(R1) AND STORES RESULT IN R2. IF RESULT'S MAGNITUDE
+      97                                        ; EXCEEDS 32767 DECIMAL, V BIT IS SET TO 0. R3, R4, R5 NOT USED.
+      98                                        ;
+      99 000720 005002                          MUL:    CLR     R2              ; (R2)=0
+     100 000722 032701  000001                  MUL1:   BIT     #1,R1           ; TEST BIT 0 OF R1
+     101 000726 001402                                  BEQ     MUL2            ; IF 0, DON'T ADD
+     102 000730 060002                                  ADD     R0,R2           ; ELSE, (R0)=(R0)+(R2)
+     103 000732 102406                                  BVS     MUL3            ; EXIT IF OVERFLOW
+     104 000734 000241                          MUL2:   CLC                     ; CLEAR C BIT
+     105 000736 006001                                  ROR     R1              ; ROTATE R1 1 BIT RIGHT
+     106 000740 006300                                  ASL     R0              ; ARITH.-SHIFT (R0) 1 BIT LEFT
+     107 000742 102402                                  BVS     MUL3            ; EXIT IF OVERFLOW
+     108 000744 005701                                  TST     R1              ; TEST (R1)
+     109 000746 001365                                  BNE     MUL1            ; IF NOT 0, KEEP MULTIPLYING
+     110 000750 000207                          MUL3:   RTS     PC              ; EXIT
+     111                                        ;
+     112 000752                                 STRING: .BLKB   20.             ; STORAGE FOR TYPED-IN STRING
+     113                                        ;
+     113                                                .END    START

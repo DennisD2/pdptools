@@ -1,0 +1,44 @@
+       1                                            .TITLE BELL-AND-INTTYPE
+       2                                        ; INTERRUPT DRIVEN ECHO AND LINE TIME CLOCK PROGRAM
+       3                                        ; TYPED IN CHARS ARE ECHOED, EACH SECOND A CHAR 'A' IS DUMPED TO PRINTER
+       4                                        ; check line 23: I needed to comment this out, otherwise i get error vec 10 ?!?
+       5 000000                                 LC=.
+       6 000004                                 .=4+LC
+       7 000004 000006  000000  000012                  .WORD    6,0,12,0           ; INITIALIZE ERROR VECTORS
+         000012 000000                  
+       8 000060                                 .=60+LC
+       9 000060 000522  000200                          .WORD    INTHND,200         ; INITIALIZE INTERRUPT VECTOR FOR KEYBOARD
+      10 000100                                 .=100+LC
+      11 000100 000532  000300                          .WORD    INTBEL,300         ; INITIALIZE INTERRUPT VECTOR FOR CLOCK
+      12                                        ;
+      13 000500                                 .=500+LC                            ; ALLOW FOR STACK SPACE
+      14 000500 010706                          START:  MOV     PC,SP
+      15 000502 005746                                  TST     -(SP)               ; INIT SP TO START
+      16                                        ;
+      17 177560                                 KBSTAT=177560
+      18 177562                                 KBDATA=177562
+      19 177566                                 PRDATA=177566
+      20                                        ;CLSTAT=177546
+      21                                        ;
+      22 000504 012737  000100  177560                  MOV     #100,@#KBSTAT       ; SET INTERRUPT ENABLE BIT TO 1
+      23                                        ;;        MOV     #100,@#CLSTAT       ; SET INTERRUPT ENABLE BIT TO 1
+      24 000512 012737  000001  000560                  MOV     #1,COUNT            ; INITIALIZE TICK COUNT
+      25                                        ;
+      26                                        ;               (MAIN PROGRAM HERE)
+      27 000520 000777                          MAIN:   BR      MAIN
+      28                                        ;
+      29                                        ;               INTERRUPT HANDLER
+      30 000522 013737  177562  177566          INTHND: MOV     @#KBDATA,@#PRDATA   ; PRINT INPUT CHARACTER
+      31 000530 000002                                  RTI                         ; RETURN FROM INTERRUPT
+      32                                
+      33                                        ;               INTERRUPT HANDLER
+      34 000532 005337  000560                  INTBEL: DEC     COUNT               ; (COUNT) = (COUNT)+1
+      35 000536 001401                                  BEQ     RING                ; IF (COUNT)=0, RING BELL
+      36 000540 000002                                  RTI                         ; RETURN FROM INTERRUPT
+      37 000542 012737  000101  177566          RING:   MOV     #101,@#PRDATA       ; RING BELL (ASCII CODE 007, 101='A')
+      38 000550 012737  000062  000560                  MOV     #50.,COUNT          ; SET COUNT TO 10 SECONDS
+      39 000556 000002                                  RTI                         ; RETURN FROM INTERRUPT
+      40 000560                                 COUNT:  .BLKW   1                   ; TICK COUNT
+      41                                
+      42                                                .END    START
+      42                                

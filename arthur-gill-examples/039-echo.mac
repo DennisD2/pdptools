@@ -1,0 +1,23 @@
+            .TITLE SIMPLE ECHO, ARTHUR GILL PAGE 39
+        ; ECHO EACH TYPED-IN CHAR 
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+
+
+        .=500+LC                         ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)           ; INIT SP TO START
+        ;
+        KBSTAT=177560
+        KBDATA=177562
+        PRSTAT=177564
+        PRDATA=177566
+        ;
+        WAIT1:  TSTB    KBSTAT          ; IS CHAR IN?
+                BPL     WAIT1           ; IF NOT, WAIT
+                MOVB    KBDATA,R5       ; ELSE PUT IT IN R5
+        WAIT2:  TSTB    PRSTAT          ; IS PRINTER FREE?
+                BPL     WAIT2            ; IF NOT, WAIT
+                MOVB    R5,PRDATA       ; ELSE PRINT (R5)
+                BR      WAIT1

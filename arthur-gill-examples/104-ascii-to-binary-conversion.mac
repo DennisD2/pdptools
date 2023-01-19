@@ -1,0 +1,114 @@
+            .TITLE ASCTOBIN ARTHUR GILL PAGE 104
+        ; CONVERTS A TYPED IN DECIMAL NUMBER N INTO ITS BINARY EQUIVALENT
+        ; N MAY BE PREFIXED WITH + OR - AND MUST BE FOLLOWED BY A CARRIAGE RETURN.
+        ; THE BINARY EQUIVALENT OF N IS LEFT IN R2- IF N'S MAGNITUDE EXCEEDS
+        ; 32767 BYTES, R2 WILL BE LEFT WITH 100000 OCTAL.
+
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+
+        .=500+LC                         ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)           ; INIT SP TO START
+        ;
+        KBSTAT=177560
+        KBDATA=177562
+        PRSTAT=177564
+        PRDATA=177566
+        LF=12
+        CR=15
+        ;
+        ;               MAIN PROGRAM
+                MOV     #STRING,R3      ; (R3)=STRING
+                JSR     PC,INPUT        ; STORE INPUT STRING IN ARRAY
+                MOV     #STRING,R3      ; (R3)=STRING
+                JSR     PC,ATOB         ; CONVERT STRING INTO BINARY
+                HALT
+        ;
+
+        ;               INPUT
+        ; ECHOES TYPED-IN CHARACTERS AND STORES THEM IN BYTE ARRAY WHOSE BASE
+        ; ADDRESS IS IN R3. EXITS AFTER CR IS TYPED. CHANGES R3, R5.
+        INPUT:  TSTB    KBSTAT          ; IS CHARACTER IN?
+                BPL     INPUT           ; IF NOT, WAIT
+                MOV     KBDATA,R5       ; (R5)=CHARACTER
+                JSR     PC,PRINT        ; PRINT CHARACTER
+                BIC     #177600,R5      ; REMOVE CHECK BIT
+                MOVB    R5,(R3)+        ; STORE CHAR IN ARRAY, UPDATE INDEX
+                CMP     #CR,R5          ; IS CHARACTER CR?
+                BNE     INPUT           ; IF NOT, ACCEPT NEXT CHARACTER
+                MOV     #LF,R5          ; ELSE,
+                JSR     PC,PRINT        ;       MOVE TO NEXT LINE
+                RTS     PC              ; EXIT
+        ;
+        ;               PRINT
+        ; PRINTS CONTENT OF R5, REGISTERS UNCHANGED.
+        PRINT:  TSTB    PRSTAT          ; IS PRINTER READY?
+                BPL     PRINT           ; IF NOT, WAIT
+                MOV     R5,PRDATA       ; IF SO, PRINT (R5)
+                RTS     PC              ; EXIT
+        ;
+        ;               ATOB
+        ; CONVERTS INTO BINARY A DECIMAL NUMBER N STORED IN ASCII IN BYTE ARRAY
+        ; WHOSE BASE ADDRESS IS IN R3. N MAY BE PREFIXED WITH + OR - AND MUST BE
+        ; FOLLOWED BY A NON-DIGIT. THE BINARY EQUIVALENT OF N IS LEFT IN R2. IF
+        ; N'S MAGNITUDE EXCEEDS 32767 DECIMAL, R2 IS LEFT WITH 100000 OCTAL.
+        ; REGISTER ALLOCATION:
+        ;       (R0), (R1) ARE USED FOR INPUTTING MUL PARAMETERS
+        ;       (R2) = CONVERTED NUMBER
+        ;       (R3) = POINTER TO NEXT CHARACTER
+        ;       (R4) = SCANNED CHARACTER
+        ;       (R5) = SIGN FLAG (0 IF N IS POSITIVE, 1 OTHERWISE)
+        ATOB:   CLR     R5              ; ZERO SIGN FLAG (ASSUME N POSITIVE)
+                MOVB    (R3)+,R4        ; (R4)=SCANNED CHARACTER, UPDATE INDEX
+                CMPB    #'+,R4          ; IS CHARACTER +?
+                BEQ     ATOB2           ; IF SO, START CONVERTING
+                CMPB    #'-,R4          ; IS CHARACTER -?
+                BNE     ATOB1           ; IF NOT, N IS UNSIGNED
+                INC     R5              ; IF SO, SET SIGN FLAG FOR NEGATIVE N
+                BR      ATOB2           ; START CONVERTING
+        ATOB1:  DEC     R3              ; CHARACTER IS DIGIT. BACKTRACK
+        ATOB2:  CLR     R2              ; INITIALIZE RESULT TO 0
+        ATOB3:  MOVB    (R3)+,R4        ; (R4)=SCANNED CHARACTER, UPDATE INDEX
+                CMPB    #'0,R4          ; IF '0>(R4)' (NONDIGIT)
+                BHI     ATOB4           ;     PREPARE FOR EXIT
+                CMPB    #'9,R4          ; IF '9<(R4)' (NONDIGIT)
+                BLO     ATOB4           ;     PREPARE FOR EXIT
+                BIC     #177760,R4      ; CONVERT DIGIT TO BINARY
+                MOV     #10.,R0         ; (R0)=10 (MUL PARAMETER)
+                MOV     R2,R1           ; (R2)=(R1) (MUL PARAMETER)
+                JSR     PC,MUL          ; (R2)=(R0)*(R1)=10.*(R2)
+                BVS     ATOB6           ; IF OVERFLOW, PREPARE FOR EXIT
+                ADD     R4,R2           ; (R2)=(R4)+(R2)
+                BVS     ATOB6           ; IF OVERFLOW, PREPARE FOR EXIT
+                BR      ATOB3           ; SCAN NEXT CHARACTER
+        ; NORMAL EXIT
+        ATOB4:  TST     R5              ; TEST SIGN FLAG
+                BEQ     ATOB5           ; IF NUMBER IS PROSITIVE, EXIT
+                NEG     R2              ; ELSE, (R2)=-(R2)
+        ATOB5:  RTS     PC              ; EXIT
+        ; OVERFLOW EXIT
+        ATOB6:  MOV     #100000,R2      ; (R2)=100000
+                RTS     PC
+        ;
+        ;               MUL
+        ; COMPUTES (R0)*(R1) AND STORES RESULT IN R2. IF RESULT'S MAGNITUDE
+        ; EXCEEDS 32767 DECIMAL, V BIT IS SET TO 0. R3, R4, R5 NOT USED.
+        ;
+        MUL:    CLR     R2              ; (R2)=0
+        MUL1:   BIT     #1,R1           ; TEST BIT 0 OF R1
+                BEQ     MUL2            ; IF 0, DON'T ADD
+                ADD     R0,R2           ; ELSE, (R0)=(R0)+(R2)
+                BVS     MUL3            ; EXIT IF OVERFLOW
+        MUL2:   CLC                     ; CLEAR C BIT
+                ROR     R1              ; ROTATE R1 1 BIT RIGHT
+                ASL     R0              ; ARITH.-SHIFT (R0) 1 BIT LEFT
+                BVS     MUL3            ; EXIT IF OVERFLOW
+                TST     R1              ; TEST (R1)
+                BNE     MUL1            ; IF NOT 0, KEEP MULTIPLYING
+        MUL3:   RTS     PC              ; EXIT
+        ;
+        STRING: .BLKB   20.             ; STORAGE FOR TYPED-IN STRING
+        ;
+                .END    START

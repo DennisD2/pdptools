@@ -1,0 +1,50 @@
+            .TITLE BINARY DIVISION
+        ; EXECUTES BINARY DIVISION FOR WORDS. R2=R0/R1
+        ; USED REGISTERS: R0,R1,R2,R3
+        ;
+        LC=.
+        .=4+LC
+                .WORD    6,0,12,0        ; INITIALIZE ERROR VECTORS
+        ;
+        .=500+LC                         ; ALLOW FOR STACK SPACE
+        START:  MOV     PC,SP
+                TST     -(SP)            ; INIT SP TO START
+        ;
+        ;               MAIN PROGRAM
+        ; SET EXAMPLE VALUES FOR DIV EXECUTION
+                MOV     #125252,R0      ; 125252 = 0xAAAA
+                MOV     #125,R2         ; 125 = 0x55 RESULT = 1002o
+                MOV     #45454,R0       ;
+                MOV     #454,R2         ; RESULT = 100o
+                MOV     #15015.,R0      ;
+                MOV     #15.,R1         ; RESULT = 1001d = 1751o
+        ;
+        ;               DIVISION SUBROUTINE
+        ; EXECUTES BINARY DIVISION FOR WORDS. R2=R0/R1
+        ; USED REGISTERS: R0,R1,R2,R3
+        ; R0: DIVIDEND
+        ; R1: DIVISOR
+        ; R2: RESULT
+        ; R3: HELP REGISTER
+        DIV:    CLR     R3              ; CLEAR HELP REGISTER
+                CLR     R2              ; CLEAR RESULT
+                INC     R2              ; SET BIT1 TO 1
+        ;
+        DIVA:   CLC                     ; CLEAR CARRY
+                ROL     R0              ; ROTATE LEFT, MSB GOES TO CARRY
+                ROL     R3              ; ROLL IN CARRY TO LSB OF R3
+                BCS     DIVB            ; A ONE WS ROLLED, GO TO SUBTRACT
+                CMP     R3,R1           ; DIVISION RESULT 0 OR 1?
+                BCS     DIVC            ; DO NOT SUBTRACT IF < 0  (RESULT DIGIT IS THEN 0)
+        ;
+        DIVB:   SUB     R1,R3           ; SUBTRACT R1/DIVISOR FROM HELP REGISTER
+                SEC                     ; SET CARRY BIT (RESULT DIGIT IS A 1)
+                JMP     DIVD            ; GO TO 'ROTATE RESULT'
+        ;
+        DIVC:   CLC                     ; CLEAR CARRY, RESULT IS A 0
+        ;
+        DIVD:   ROL     R2              ; ROTATE CARRY INTO RESULT
+                BCC     DIVA            ; AS LONG AS 0 FROM ROTATE OUT OF RESULT, CONTINUE
+        ;
+        STOP:   HALT
+                .END    START
