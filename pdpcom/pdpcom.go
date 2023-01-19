@@ -14,7 +14,7 @@ import (
 	"golang.org/x/term"
 )
 
-// PDP11SerialConnection Variables for pdpcon program
+// PDP11Connection connection to PDP machine
 type PDP11Connection struct {
 	continueLoop int
 	state        ConnState
@@ -68,7 +68,7 @@ func main() {
 	}
 
 	if !pdp.dryMode {
-		// open TTY reader
+		// open tty reader
 		err := pdp.serial.openTTY()
 		if err != nil {
 			fmt.Println(err)
@@ -110,7 +110,7 @@ func ttyReader(pdp *PDP11Connection) {
 		if pdp.dryMode {
 			continue
 		}
-		// check pdp TTY
+		// check PDP tty
 		_, err := pdp.serial.tty.Read(cbuf)
 		if err != nil {
 			fmt.Printf("Error in Read: %s\n", err)
@@ -142,6 +142,7 @@ func localKeyboardReader(pdp *PDP11Connection) {
 				continue
 			}
 			if num > 1 {
+				// We currently cannot handle multiple chars at once
 				fmt.Println("Multiple chars!")
 			}
 
@@ -204,7 +205,7 @@ func localKeyboardReader(pdp *PDP11Connection) {
 					continue
 				}
 			}
-			// Normal ODT input, forward it to TTY
+			// Normal ODT input, forward it to tty
 			b[0] = cbuf[0]
 			if !pdp.dryMode {
 				if pdp.debug > 0 {

@@ -18,7 +18,7 @@ Uses os.unix packages of Go, so it will work only on Linux OS.
 # How to use
 Command line to start interactively:
 ```shell
-pdpcom
+pdpcom --device=/dev/ttyUSB1
 
 # Or use arguments and sources
 go run pdpcom.go pdpConnection.go \
@@ -53,5 +53,5 @@ https://user-images.githubusercontent.com/7112686/166147322-41d7fa8d-4714-4125-a
 TODO; update video
 
 # How it works
-It handles keyboard input/output on a PC with a Go routine.
+pdpcom handles keyboard input/output on a PC with a Go routine.
 The in/output of the PDP machine is handled with a second Go routine.
