@@ -1,5 +1,6 @@
 # Example listings from Arthur Gills Book "Machine And Assembly Language Programming Of The PDP-11"
 This directory contains some examples from that venerable book.
+I found some biography data on Arthur Gill [here](https://www2.eecs.berkeley.edu/Faculty/Homepages/gill.html).
 
 The examples are nearly 1:1 typed in from the book. I have only replaced some
 absolute addresses with labels to make them more understandable.

@@ -2,6 +2,8 @@
 
 * lst2deposit - creates a SIMH deposit file from a MACRO11 LST file
 * pdpcom - allows to upload deposit file content to a serial attached PDP11 
+* arthur-gill-examples - some nice examples
+* examples - some simple examples
 
 # How to Build
 See sub projects readme files,  [lst2deposit/README.md](lst2deposit/README.md) 
