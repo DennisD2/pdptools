@@ -1,12 +1,13 @@
 # macro11 options - Create absolute addresses (no relocable addresses, because we use no linker)
 MOPTS		= -e AMA
+LST2DEPOSITPATH=../lst2deposit
 #MOPTS		=
 
 %.lst : %.mac
 	macro11 $(MOPTS) -l $@ $<
 
 %.deposit : %.lst
-	../lst2deposit/lst2deposit --lst $< --debug 1 --out $@
+	$(LST2DEPOSITPATH)/lst2deposit --lst $< --debug 1 --out $@
 
 all: 039-echo.deposit 040-a-to-z-to-mem.deposit 054-multiecho.deposit 064-backward-echo.deposit \
 	104-ascii-to-binary-conversion.deposit 117-intype.deposit 118-inbell.deposit \

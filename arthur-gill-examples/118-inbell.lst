@@ -22,7 +22,7 @@
       21 000512 000777                          MAIN:   BR      MAIN
       22                                        ;
       23                                        ;               INTERRUPT HANDLER
-      24 000514 005337  000542                  INTHND: DEC     COUNT               ; (COUNT) = (COUNT)+1
+      24 000514 005337  000542                  INTHND: DEC     COUNT               ; (COUNT) = (COUNT)-1
       25 000520 001401                                  BEQ     RING                ; IF (COUNT)=0, RING BELL
       26 000522 000002                                  RTI                         ; RETURN FROM INTERRUPT
       27 000524 012737  000101  177566          RING:   MOV     #101,@#PRDATA       ; RING BELL (ASCII CODE 007)

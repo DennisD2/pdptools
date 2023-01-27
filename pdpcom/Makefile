@@ -5,7 +5,7 @@ clean:
 	rm pdpcom
 
 test:
-	./pdpCom --batch --upload ./macro11-examples/054-multiecho.deposit
+	./pdpcom --batch --upload ../arthur-gill-examples/054-multiecho.deposit
 
 init:
 	go mod init pdpcom
