@@ -47,6 +47,15 @@ Enter command mode with ```:```. Commands:
   After the ```r```, enter a ```SPACE``` and then path to file to upload.
 
 
+### Screencast demo session
+Small video clip where I list some memory content, load an object file, show that is has been loaded to memory and
+execute it (this simple object file waits for a single char and prints it to console):
+
+[![https://youtu.be/ZbehDUC4euI](https://img.youtube.com/vi/ZbehDUC4euI/0.jpg)](https://www.youtube.com/watch?v=ZbehDUC4euI)
+
+[https://youtu.be/ZbehDUC4euI](https://youtu.be/ZbehDUC4euI)
+
+
 # How it works
 pdpcom handles keyboard input/output on a PC with a Go routine.
 The in/output of the PDP machine is handled with a second Go routine.
