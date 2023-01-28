@@ -1,4 +1,5 @@
 # pdptools
+Tools to communicate with and upload code to physical PDP11 connected via RS232.
 
 * lst2deposit - creates a SIMH deposit file from a MACRO11 LST file
 * pdpcom - allows to upload deposit file content to a serial attached PDP11 
@@ -12,6 +13,12 @@ and [pdpcom/README.md](pdpcom/README.md)
 # How to use
 See sub projects readme files,  [lst2deposit/README.md](lst2deposit/README.md)
 and [pdpcom/README.md](pdpcom/README.md)
+
+### Screencast showcase
+Small video clip where I list some memory content, load an object file, show that is has been loaded to memory and
+execute it (this simple object file waits for a single char and prints it to console):
+
+[https://youtu.be/ZbehDUC4euI](https://youtu.be/ZbehDUC4euI)
 
 # Example use cases
 See directory [arthur-gill-examples](arthur-gill-examples) for examples I typed in from

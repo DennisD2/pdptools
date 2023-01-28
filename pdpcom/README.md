@@ -46,11 +46,6 @@ Enter command mode with ```:```. Commands:
 * 'r': read and upload PDP11 binary (in SIMH deposit format) to PDP. 
   After the ```r```, enter a ```SPACE``` and then path to file to upload.
 
-Small video clip where I list some memory content, load an object file, show that is has been loaded to memory and
-execute it (this simple object file waits for a single char and prints it to console):
-
-https://user-images.githubusercontent.com/7112686/166147322-41d7fa8d-4714-4125-a60a-cdef343112e0.mp4
-TODO; update video
 
 # How it works
 pdpcom handles keyboard input/output on a PC with a Go routine.
