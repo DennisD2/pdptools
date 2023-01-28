@@ -14,13 +14,14 @@ and [pdpcom/README.md](pdpcom/README.md)
 See sub projects readme files,  [lst2deposit/README.md](lst2deposit/README.md)
 and [pdpcom/README.md](pdpcom/README.md)
 
-### Screencast showcase
+### Screencast demo session
 Small video clip where I list some memory content, load an object file, show that is has been loaded to memory and
 execute it (this simple object file waits for a single char and prints it to console):
 
+[![https://youtu.be/ZbehDUC4euI](https://img.youtube.com/vi/ZbehDUC4euI/0.jpg)](https://www.youtube.com/watch?v=ZbehDUC4euI)
+
 [https://youtu.be/ZbehDUC4euI](https://youtu.be/ZbehDUC4euI)
 
-[![https://youtu.be/ZbehDUC4euI](https://img.youtube.com/vi/ZbehDUC4euI/0.jpg)](https://www.youtube.com/watch?v=ZbehDUC4euI)
 # Example use cases
 See directory [arthur-gill-examples](arthur-gill-examples) for examples I typed in from
 Arthur Gills great book.
