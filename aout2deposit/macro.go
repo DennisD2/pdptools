@@ -39,11 +39,11 @@ func convertFile(conversionInfo *ConversionInfo) {
 	total := data_addr + data_len + bss_len
 	log.Printf("      Magic    Text     Len    Data     Len     BSS = MaxMem   Entry")
 	log.Printf("Hex:   %04x    %04x    %04x    %04x    %04x    %04x     %04x    %04x",
-		magic, conversionInfo.text, text_len, data_addr, data_len, bss_len, total, entry)
+		magic, text_addr, text_len, data_addr, data_len, bss_len, total, entry)
 	log.Printf("Dec:  %05d   %05d   %05d   %05d   %05d   %05d    %05d   %05d",
-		magic, conversionInfo.text, text_len, data_addr, data_len, bss_len, total, entry)
+		magic, text_addr, text_len, data_addr, data_len, bss_len, total, entry)
 	log.Printf("Oct: %06o  %06o  %06o  %06o  %06o  %06o   %06o  %06o",
-		magic, conversionInfo.text, text_len, data_addr, data_len, bss_len, total, entry)
+		magic, text_addr, text_len, data_addr, data_len, bss_len, total, entry)
 
 	// text section
 	var buf1 = make([]byte, 16+text_len)
