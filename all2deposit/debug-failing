@@ -1,0 +1,167 @@
+sim> do try1.dep 
+sim> d pc 1000
+sim> b 1000
+Non-existent device, PC: 001000 (MOV #776,SP)
+sim> break 1000
+sim> go 1000
+Breakpoint, PC: 001000 (MOV #776,SP)
+sim> step
+Step expired, PC: 001004 (CLR R0)
+sim> step
+Step expired, PC: 001006 (CLR (R0)+)
+sim> step
+Step expired, PC: 001010 (CMP R0,#620)
+sim> step
+Step expired, PC: 001014 (BNE 1006)
+sim> ex r0
+R0:     000002
+sim> step
+Step expired, PC: 001006 (CLR (R0)+)
+sim> step
+Step expired, PC: 001010 (CMP R0,#620)
+sim> 
+sim> step
+Step expired, PC: 001014 (BNE 1006)
+sim> 
+sim> step
+Step expired, PC: 001006 (CLR (R0)+)
+sim> step
+Step expired, PC: 001010 (CMP R0,#620)
+sim> step
+Step expired, PC: 001014 (BNE 1006)
+sim> step
+Step expired, PC: 001006 (CLR (R0)+)
+sim> step
+Step expired, PC: 001010 (CMP R0,#620)
+sim> step
+Step expired, PC: 001014 (BNE 1006)
+sim> step
+Step expired, PC: 001006 (CLR (R0)+)
+sim> step
+Step expired, PC: 001010 (CMP R0,#620)
+sim> step
+Step expired, PC: 001014 (BNE 1006)
+sim> step
+Step expired, PC: 001006 (CLR (R0)+)
+sim> step
+Step expired, PC: 001010 (CMP R0,#620)
+sim> step
+Step expired, PC: 001014 (BNE 1006)
+sim> ex 1014-1020
+1014:   001374
+1016:   012737
+1020:   000137
+sim> break 1016
+sim> cont
+Breakpoint, PC: 001016 (MOV #137,@#0)
+sim> step
+Step expired, PC: 001024 (MOV #1000,@#2)
+sim> step
+Step expired, PC: 001032 (JSR PC,1342)
+sim> step
+
+Step expired, PC: 001342 (MOV R2,-(SP))
+sim> step
+Step expired, PC: 001344 (JSR PC,1042)
+sim> s
+Step expired, PC: 001042 (RTS PC)
+sim> step
+Step expired, PC: 001350 (MOV #12,R2)
+sim> step
+Step expired, PC: 001354 (MOV #1404,-(SP)) <-------- LOOP_A, round 1
+sim> step
+Step expired, PC: 001360 (JSR PC,1306)
+sim> step
+
+Step expired, PC: 001306 (MOV R2,-(SP))
+sim> step
+Step expired, PC: 001310 (MOV 4(SP),R2)
+sim> step
+Step expired, PC: 001314 (MOVB (R2)+,R0)
+sim> step
+Step expired, PC: 001316 (TSTB R0)
+sim> ex r0
+R0:     000000 <<<<<< SOLL: Buchstabe H , ist 0x0
+sim> step
+Step expired, PC: 001320 (BNE 1326) <<<<<<<< anders, geht nach 1322
+sim> step
+Step expired, PC: 001322 (MOV (SP)+,R2) <<<<<<<< anders
+sim> step
+Step expired, PC: 001324 (RTS PC)
+sim> ex r2
+R2:     000012
+sim> step
+Step expired, PC: 001364 (DEC R2)
+sim> step
+Step expired, PC: 001366 (ADD #2,SP)
+sim> step
+Step expired, PC: 001372 (TST R2)
+sim> ex r2
+R2:     000011
+sim> step
+Step expired, PC: 001374 (BNE 1354)
+sim> step
+Step expired, PC: 001354 (MOV #1404,-(SP)) <-------- LOOP_A, round 2
+sim> step
+Step expired, PC: 001360 (JSR PC,1306)
+sim> break 1306
+sim> s
+Step expired, PC: 001306 (MOV R2,-(SP))
+sim> s
+Breakpoint, PC: 001306 (MOV R2,-(SP))
+sim> s
+Step expired, PC: 001310 (MOV 4(SP),R2)
+sim> s
+Step expired, PC: 001314 (MOVB (R2)+,R0)
+sim> s
+Step expired, PC: 001316 (TSTB R0)
+sim> s
+Step expired, PC: 001320 (BNE 1326)
+sim> ex r0
+R0:     000000
+sim> s
+Step expired, PC: 001322 (MOV (SP)+,R2)
+sim> s
+Step expired, PC: 001324 (RTS PC)
+sim> s
+Step expired, PC: 001364 (DEC R2)
+sim> s
+Step expired, PC: 001366 (ADD #2,SP)
+sim> s
+Step expired, PC: 001372 (TST R2)
+sim> s
+Step expired, PC: 001374 (BNE 1354)
+sim> s
+Step expired, PC: 001354 (MOV #1404,-(SP))  <-------- LOOP_A, round 3
+sim> s
+Step expired, PC: 001360 (JSR PC,1306)
+sim> s
+Step expired, PC: 001306 (MOV R2,-(SP))
+sim> s
+Breakpoint, PC: 001306 (MOV R2,-(SP))
+sim> s
+Step expired, PC: 001310 (MOV 4(SP),R2)
+sim> s
+Step expired, PC: 001314 (MOVB (R2)+,R0)
+sim> s
+Step expired, PC: 001316 (TSTB R0)
+sim> s
+Step expired, PC: 001320 (BNE 1326)
+sim> s
+Step expired, PC: 001322 (MOV (SP)+,R2)
+sim> s
+Step expired, PC: 001324 (RTS PC)
+sim> s
+Step expired, PC: 001364 (DEC R2)
+sim> s
+Step expired, PC: 001366 (ADD #2,SP)
+sim> s
+Step expired, PC: 001372 (TST R2)
+sim> s
+Step expired, PC: 001374 (BNE 1354)
+sim> s
+Step expired, PC: 001354 (MOV #1404,-(SP))  <-------- LOOP_A, round 4
+sim> s
+Step expired, PC: 001360 (JSR PC,1306)
+sim> q
+Goodbye
