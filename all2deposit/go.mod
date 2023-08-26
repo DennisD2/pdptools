@@ -1,3 +1,3 @@
-module aout2deposit
+module all2deposit
 
 go 1.17
