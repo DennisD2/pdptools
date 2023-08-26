@@ -1,0 +1,23 @@
+       1                                            .title helloworld
+       2                                        ;
+       3 000000                                 lc=.
+       4 002000                                 .=2000+lc                         ; allow for stack space
+       5 177564                                 prstat=177564
+       6                                        ;
+       7 002000 012702  177564                  hello:  mov     #prstat,r2        ; r2 points to serial send register
+       8 002004 012701  002032                          mov     #msg,r1           ; r1 points to the current character
+       9 002010 112100                          again:  movb    (r1)+,r0          ; load next char to r0
+      10 002012 001405                                  beq     done              ; char is a zero byte? if yes go to done
+      11 002014 110062  000002                          movb    r0,2(r2)+         ; write char to transmit buffer
+      12 002020 105712                          wait:   tstb    (r2)              ; character transmitted?
+      13 002022 100376                                  bpl     wait              ; if not, then wait
+      14 002024 000771                                  br      again             ; if yes, repeat for next char
+      15 002026 000000                          done:   halt
+      16 002030 000763                                  br      hello             ; line not needed?
+      17                                                msg:
+      18                                
+      19 002032    110     145     154                  .ascii  /Hello, world/  ;
+         002035    154     157     054  
+         002040    040     167     157  
+         002043    162     154     144  
+      19 002046    012     000                          .byte 12,0 ; lf, char, end marker
