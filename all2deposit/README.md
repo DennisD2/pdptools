@@ -1,23 +1,101 @@
 # aout2deposit
 
-Creates a SIMH deposit file from an ...
+Creates a SIMH deposit file from an input file
+input file format can be:
+* PTAP (paper tape) format
+* a.out format (not yet implemented)
 
-# todos
-* make it work: 
-  * find issue: what goes wrong; what is the jmp thing in crt0.s? does it harm? 
-  * compile smallest possible thing like a=1;b=2c=a+b check code and if it runs
-  * check if generated example runs on SIMH (ptap and my deposit file)
-* create file (not stdout)
-* handle vector0 arg
-* find out how to do single step in ODT
+Convert ```hello.ptap```, deposit output file is 
+```try1.dep```:
+```bash
+go run . --in pdp11-bare-metal-src/hello.ptap >try1.dep
+```
 
-Original:
-```shell
-aout2lda --aout hello --lda hello.ptap --data-align 2     --text 0x200 --vector0
-      Magic    Text +    Len    Data +    Len     BSS = MaxMem   Entry
-Hex:   0701    0200 +   0104    0304 +   0010    0000     0314    0200
-Dec:   1793     512 +    260     772 +     16       0      788     512
-Oct: 003401  001000 + 000404  001404 + 000020  000000   001424  001000
+SIMH use for PTAP and DEPOSIT file:
+```bash
+% pdp11 try1.dep
+```
+Then execute ```run 1000``` in simh console.
+
+```bash
+% pdp11
+PDP-11 simulator V4.0-0 Current        git commit id: d5cc3406
+sim> load pdp11-bare-metal-src/hello
+```
+Then execute ```run``` in simh console.
+
+simh commands
+```
+// load DEPOSIT file
+sim> do try1.dep 
+
+// breakpoint
+sim> br 1000
+// run code, use PC content as starting point
+sim> run
+
+// run code 
+sim> go 1000
+
+Breakpoint, PC: 001000 (MOV #776,SP)
+// Single step
+sim> s
+Step expired, PC: 001004 (CLR R0)
+// examine some register
+sim> ex r0
+R0:     000010
+// examine memory content
+sim> ex 1010-1050
+1010:   020027
+1012:   000620
+1014:   001374
+// continue run
+sim> cont
+// show breakpoints
+sim> show break
+Supported Breakpoint Types: -E -P -R -S -W -X
+1000:   E
+1016:   E
+1044:   E
+// remove breakpoint#
+sim> nobr  1044
+// Examine with and w/o ASCII flag
+sim> ex -a 1404-1422
+1404:   H
+1405:   e
+1406:   l
+1407:   l
+1410:   o
+1411:
+1412:   W
+1413:   o
+1414:   r
+1415:   l
+1416:   d
+1417:   !
+1420:   <015>
+1421:   <012>
+1422:   <000>
+
+sim> ex  1404-1422
+1404:   062510
+1406:   066154
+1410:   020157
+1412:   067527
+1414:   066162
+1416:   020544
+1420:   005015
+1422:   000000
+
+// Exsamine all CPU details
+sim> ex state
+PC:     000104
+R0:     000000
+R1:     000000
+R2:     000000
+R3:     000000
+R4:     000000
+...
 ```
 
 ## Related
