@@ -28,7 +28,7 @@ const (
 	Octal OutFormat = 0
 )
 
-// OutFormat number format to write
+// ConversionState number format to write
 type ConversionState int
 
 const (
