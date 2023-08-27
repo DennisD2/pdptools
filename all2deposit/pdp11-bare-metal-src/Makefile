@@ -16,5 +16,11 @@ test:
 	# Create deposit file from PTAP file
 	../all2deposit --in hello.ptap >hello.deposit
 
+# disassemble created object files
+disassemble:
+	pdp11dasm crt0.o
+	pdp11dasm console.o
+	pdp11dasm hello.o
+
 clean:
 	rm *.o hello *.ptap *.deposit
