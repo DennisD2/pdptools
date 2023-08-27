@@ -1,4 +1,4 @@
-# aout2deposit
+# all2deposit
 
 Creates a SIMH deposit file from an input file
 input file format can be:
@@ -6,28 +6,28 @@ input file format can be:
 * a.out format (not yet implemented)
 
 Convert ```hello.ptap```, deposit output file is 
-```try1.dep```:
+```hello.deposit```:
 ```bash
-go run . --in pdp11-bare-metal-src/hello.ptap >try1.dep
+go run . --in pdp11-bare-metal-src/hello.ptap >hello.deposit
 ```
 
 SIMH use for PTAP and DEPOSIT file:
 ```bash
-% pdp11 try1.dep
+% pdp11 hello.deposit
 ```
 Then execute ```run 1000``` in simh console.
 
 ```bash
 % pdp11
 PDP-11 simulator V4.0-0 Current        git commit id: d5cc3406
-sim> load pdp11-bare-metal-src/hello
+sim> load pdp11-bare-metal-src/hello.ptap
 ```
 Then execute ```run``` in simh console.
 
 simh commands
 ```
 // load DEPOSIT file
-sim> do try1.dep 
+sim> do hello.deposit
 
 // breakpoint
 sim> br 1000
@@ -97,6 +97,18 @@ R3:     000000
 R4:     000000
 ...
 ```
+## Bare metal approach
+
+I am following mainly these resources:
+
+Bare metal compiling witch GCC
+https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/
+
+Also info in bare metal compiling
+https://github.com/JamesHagerman/gcc-pdp11-aout/blob/master/README.md
+
+Insights on PDP11 programming
+https://www.learningpdp11.com/
 
 ## Related
 * Bare metal intro https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/
