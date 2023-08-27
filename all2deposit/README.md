@@ -5,12 +5,18 @@ input file format can be:
 * PTAP (paper tape) format
 * a.out format (not yet implemented)
 
+## Conversion step
 Convert ```hello.ptap```, deposit output file is 
 ```hello.deposit```:
 ```bash
+all2deposit --in pdp11-bare-metal-src/hello.ptap >hello.deposit
+# or execute without go build step directly from sources
 go run . --in pdp11-bare-metal-src/hello.ptap >hello.deposit
 ```
 
+For Makefile automation, see my [Makefile](./pdp11-bare-metal-src/Makefile)
+
+## Running deposit file (or papertape file) in SIMH
 SIMH use for PTAP and DEPOSIT file:
 ```bash
 % pdp11 hello.deposit
@@ -24,7 +30,7 @@ sim> load pdp11-bare-metal-src/hello.ptap
 ```
 Then execute ```run``` in simh console.
 
-simh commands
+## Important simh commands
 ```
 // load DEPOSIT file
 sim> do hello.deposit
@@ -98,7 +104,6 @@ R4:     000000
 ...
 ```
 ## Bare metal approach
-
 I am following mainly these resources:
 
 Bare metal compiling witch GCC
@@ -109,6 +114,11 @@ https://github.com/JamesHagerman/gcc-pdp11-aout/blob/master/README.md
 
 Insights on PDP11 programming
 https://www.learningpdp11.com/
+
+## Open issues
+* cleanup code by using the file creation and emit code, see aout.go.
+* make aout part work
+
 
 ## Related
 * Bare metal intro https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/
