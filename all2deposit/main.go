@@ -3,8 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"log"
-	"os"
 	"strings"
 )
 
@@ -47,14 +45,15 @@ func main() {
 	// Convert PTAP to Deposit
 	convertFile(&confInfo)
 
-	//
-	formatCodesForDepositFile(&confInfo)
+	/*
+		formatCodesForDepositFile(&confInfo)
 
-	// Write file
-	fmt.Printf("%s\n\r", confInfo.outContent.String())
-	err := os.WriteFile(confInfo.outFile, []byte(confInfo.outContent.String()), 0644)
-	if err != nil {
-		log.Printf("Error WritingD DEPOSIT file %s\n\r", err)
-		return
-	}
+		// Write file
+		fmt.Printf("%s\n\r", confInfo.outContent.String())
+		err := os.WriteFile(confInfo.outFile, []byte(confInfo.outContent.String()), 0644)
+		if err != nil {
+			log.Printf("Error WritingD DEPOSIT file %s\n\r", err)
+			return
+		}
+	*/
 }
