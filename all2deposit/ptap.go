@@ -63,18 +63,21 @@ func convertBlock(bytes []byte, blockOffset int) int {
 	offset := BLOCK_HEADER_SIZE + blockOffset
 	i := 0
 	var checkSum byte = 0
-	for i < 6 {
-		checkSum += bytes[i+offset]
-		i++
-	}
-	i = 0
+	/*
+		for i < 6 {
+			checkSum += bytes[i+offset]
+			i++
+		}
+		i = 0
+	*/
 	for i < dataLengthInBlock-BLOCK_HEADER_SIZE {
 		buf1[i] = bytes[i+offset]
 		checkSum += buf1[i]
+		//log.Printf("Checksum: %0x\n", checkSum)
 		i++
 	}
-	checkSumTarget := bytes[offset+dataLengthInBlock]
-	checkSum += checkSumTarget % 0xff
+	checkSumTarget := bytes[i]
+	checkSum += checkSumTarget
 	log.Printf("Checksum: %0x, should be: %0x (diff ignored)\n", checkSum, checkSumTarget)
 	i = 0
 	for i < dataLengthInBlock-BLOCK_HEADER_SIZE {

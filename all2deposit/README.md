@@ -116,6 +116,7 @@ Insights on PDP11 programming
 https://www.learningpdp11.com/
 
 ## Open issues
+* Fix checksum calculation
 * cleanup code by using the file creation and emit code, see aout.go.
 * make aout part work
 
