@@ -106,19 +106,20 @@ R4:     000000
 ## Bare metal approach
 I am following mainly these resources:
 
-Bare metal compiling witch GCC
-https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/
-
-Also info in bare metal compiling
-https://github.com/JamesHagerman/gcc-pdp11-aout/blob/master/README.md
-
-Insights on PDP11 programming
-https://www.learningpdp11.com/
+* DEC-11-XPTSA-B-D.pdf "PDP-11 Paper Tape Software Handbook"
+* Bare metal compiling witch GCC
+  https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/
+* Also info in bare metal compiling
+  https://github.com/JamesHagerman/gcc-pdp11-aout/blob/master/README.md
+* Insights on PDP11 programming
+  https://www.learningpdp11.com/
 
 ## Open issues
-* Fix checksum calculation
 * cleanup code by using the file creation and emit code, see aout.go.
 * make aout part work
+
+## Closed issues
+* Fixed checksum calculation
 
 
 ## Related

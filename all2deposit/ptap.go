@@ -60,25 +60,30 @@ func convertBlock(bytes []byte, blockOffset int) int {
 	// text section
 	var buf1 = make([]byte, dataLengthInBlock-BLOCK_HEADER_SIZE)
 	//writeSegmentHeader(buf1, text_addr)
-	offset := BLOCK_HEADER_SIZE + blockOffset
+
+	// Checksum calculation see DEC-11-XPTSA-B-D.pdf  page 133, "PDP-11 Paper Tape Software Handbook"
+	offset := blockOffset
 	i := 0
 	var checkSum byte = 0
-	/*
-		for i < 6 {
-			checkSum += bytes[i+offset]
-			i++
-		}
-		i = 0
-	*/
+	for i < 6 {
+		checkSum += bytes[i+offset]
+		i++
+	}
+	offset += BLOCK_HEADER_SIZE
+	i = 0
 	for i < dataLengthInBlock-BLOCK_HEADER_SIZE {
 		buf1[i] = bytes[i+offset]
 		checkSum += buf1[i]
-		//log.Printf("Checksum: %0x\n", checkSum)
 		i++
 	}
-	checkSumTarget := bytes[i]
-	checkSum += checkSumTarget
-	log.Printf("Checksum: %0x, should be: %0x (diff ignored)\n", checkSum, checkSumTarget)
+	checkSumTarget := bytes[offset+dataLengthInBlock-BLOCK_HEADER_SIZE]
+	checkSum = (^checkSum) + 1
+	if checkSum != checkSumTarget {
+		log.Printf("Checksum error, calculated: %0x, expected value: %0x (will be ignored)\n",
+			checkSum, checkSumTarget)
+	} else {
+		log.Printf("Checksum %0x ok\n", checkSum)
+	}
 	i = 0
 	for i < dataLengthInBlock-BLOCK_HEADER_SIZE {
 		wordValue := bytesToInt(buf1, i)
