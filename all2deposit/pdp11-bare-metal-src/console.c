@@ -9,39 +9,42 @@
 #define DL11_XCSR_READY	0x80
 #define DL11_XBUF	0177566
 
-void cons_putc(char c)
-{
+void cons_putc(char c) {
 	volatile unsigned int *xcsr = (unsigned int *)DL11_XCSR;
 	unsigned char *xbuf = (unsigned char *)DL11_XBUF;
 	while (!(*xcsr & DL11_XCSR_READY)) ;
 	*xbuf = c;
 }
 
-char cons_getc()
-{
+char cons_getc() {
 	volatile unsigned int *rcsr = (unsigned int *)DL11_RCSR;
 	unsigned char *rbuf = (unsigned char *)DL11_RBUF;
 	while (! (*rcsr & DL11_RCSR_DONE)) ;
 	return *rbuf & 0x7F;
 }
 
-void cons_gets(char *buffer, int size)
-{
+void cons_gets(char *buffer, int size) {
 	char c, *p = buffer;
 	while (1) {
 		c = cons_getc();
 		if ((c == '\b') || (c == 0x7F)) {
+		    // Backspace
 			if (p > buffer) {
-				cons_putc('#');
+			    // go back in buffer
 				p--;
+				cons_putc('#');
 			} else {
-				cons_putc(7);	// Ring Bell
-			}		} else if (c >= ' ') {
+    			// cannot go further back,  Ring Bell
+				cons_putc(7);
+			}
+		} else if (c >= ' ') {
 			if (p < buffer + size - 2) {
+			    // Add to buffer
 				*(p++) = c;
 				cons_putc(c);
 			}
 		} else if (c == '\r') {
+		    // return -> line input end
 			cons_putc(c);
 			cons_putc('\n');
 			return;
@@ -50,7 +53,6 @@ void cons_gets(char *buffer, int size)
 	}
 }
 
-void cons_puts(char *s)
-{
+void cons_puts(char *s) {
 	for (;*s;s++) cons_putc(*s);
 }
