@@ -293,13 +293,19 @@ func uploadFile(pdp *PDP11Connection, file string, debug int) {
 		fmt.Printf("%s\n\r", line.String())
 
 		var adr, value int
-		fmt.Sscanf(line.String(), "D %d %d", &adr, &value)
-		fmt.Printf("Read values: adr=%d value=%d\n\r", adr, value)
+		dCommand := ""
+		fmt.Sscanf(line.String(), "%s %d %d", &dCommand, &adr, &value)
+		fmt.Printf("Read values: command=%v adr=%d value=%d\n\r", dCommand, adr, value)
 
-		aStr := fmt.Sprintf("%d", adr)
-		vStr := fmt.Sprintf("%d", value)
-		pdp.pdpPoke(aStr, vStr, true)
-		time.Sleep(10 * time.Millisecond)
+		if dCommand == "d" || dCommand == "D" {
+			// deposit value in memory command
+			aStr := fmt.Sprintf("%d", adr)
+			vStr := fmt.Sprintf("%d", value)
+			pdp.pdpPoke(aStr, vStr, true)
+			time.Sleep(10 * time.Millisecond)
+		} else {
+			fmt.Printf("Unknown command %v, ignoring whole line\n\r", dCommand)
+		}
 
 		line.Reset()
 	}
