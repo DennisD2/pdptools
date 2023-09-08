@@ -102,6 +102,7 @@ func main() {
 	}
 
 	fmt.Println("\n\rQuitting PDP Communicator\n\r")
+	os.Exit(0)
 }
 
 func ttyReader(pdp *PDP11Connection) {
