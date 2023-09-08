@@ -10,3 +10,7 @@ test:
 init:
 	go mod init pdpcom
 	go mod tidy
+
+install:
+	go build
+	cp -av pdpcom $(HOME)/bin
