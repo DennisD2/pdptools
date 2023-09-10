@@ -161,7 +161,6 @@ func localKeyboardReader(pdp *PDP11Connection) {
 				if cbuf[0] == 0x0d {
 					fmt.Printf("\r\n%s\r\n", cmdLine)
 					uploadFile(pdp, string(cmdLine), pdp.debug)
-					//uploadFile(pdp, "macro11-examples/char-in.obj")
 					pdp.state = ODTNormal
 					fmt.Println("\n\rBack to ODT\n\r")
 				} else {

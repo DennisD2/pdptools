@@ -22,7 +22,7 @@ you need to set the cpu to 11/23. Otherwise, the LTC mechanism will not work.
 A complete execution of one example looks like this:
 
 ```shell
-# make all examples
+# make all macro11-examples
 % make
 # execute machine code with pdp11 simh simulator
 % pdp11 123-time.deposit 

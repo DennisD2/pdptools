@@ -9,12 +9,12 @@ input file format can be:
 Convert ```hello.ptap```, deposit output file is 
 ```hello.deposit```:
 ```bash
-all2deposit --in pdp11-bare-metal-src/hello.ptap >hello.deposit
+all2deposit --in bare-metal-macro11-examples-as-clang/hello.ptap >hello.deposit
 # or execute without go build step directly from sources
-go run . --in pdp11-bare-metal-src/hello.ptap >hello.deposit
+go run . --in bare-metal-macro11-examples-as-clang/hello.ptap >hello.deposit
 ```
 
-For Makefile automation, see my [Makefile](./pdp11-bare-metal-src/Makefile)
+For Makefile automation, see my [Makefile](../bare-metal-examples-clang/Makefile)
 
 ## Running deposit file (or papertape file) in SIMH
 SIMH use for PTAP and DEPOSIT file:
@@ -26,7 +26,7 @@ Then execute ```run 1000``` in simh console.
 ```bash
 % pdp11
 PDP-11 simulator V4.0-0 Current        git commit id: d5cc3406
-sim> load pdp11-bare-metal-src/hello.ptap
+sim> load bare-metal-macro11-examples-as-clang/hello.ptap
 ```
 Then execute ```run``` in simh console.
 
@@ -83,6 +83,8 @@ sim> ex -a 1404-1422
 1421:   <012>
 1422:   <000>
 
+sim> ex -m ... # will show mnemonics
+
 sim> ex  1404-1422
 1404:   062510
 1406:   066154
@@ -93,7 +95,7 @@ sim> ex  1404-1422
 1420:   005015
 1422:   000000
 
-// Exsamine all CPU details
+// Examine all CPU details
 sim> ex state
 PC:     000104
 R0:     000000

@@ -17,4 +17,4 @@ Arthur Gills great book.
 
 See [../arthur-gill-examples/Makefile](../arthur-gill-examples/Makefile) on how to use it.
 
-Some other random examples are in [../examples](../examples).
+Some other random examples are in [../examples](../macro11-examples).

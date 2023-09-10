@@ -28,7 +28,7 @@ Arthur Gills great book.
 
 See [arthur-gill-examples/Makefile](arthur-gill-examples/Makefile) on how to use it.
 
-Some other random examples are in [examples](examples).
+Some other random Macro11 examples are in [macro11-examples](macro11-examples).
 
 # References
 * MACRO-11 assembler for Linux - https://github.com/andpp/macro11
