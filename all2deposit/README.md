@@ -105,6 +105,25 @@ R3:     000000
 R4:     000000
 ...
 ```
+
+## Using second terminal to separate SIMH output and program output
+Install a telnet client. E.g. putty, which has a Linux version.
+Then define a new session, lets say named ```simh```, of
+type ```telnet```, connecting to port 8023 on localhost.
+
+Then start simh, which is able to open a telnet server port
+where the terminal output of the running simulation is provided.
+Onfigure simh to provide the telnet server port:
+```shell
+sim> set console telnet=localhost:8023
+Listening on port LOCALHOST:8023
+sim> set console pchar=37777777777
+```
+
+Then try the connect with putty. A window should open and
+the program output should go there. simh commands can still
+be entered in the first terminal session.
+
 ## Bare metal approach
 I am following mainly these resources:
 
