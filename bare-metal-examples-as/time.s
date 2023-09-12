@@ -3,7 +3,7 @@
 
         .GLOBAL start
 
-        STACK = 0x1000
+#        STACK = 0x1000
 
         KBSTAT=0177560
         KBDATA=0177562
@@ -11,17 +11,31 @@
         PRDATA=0177566
         CLSTAT=0177546
 
+        .text
+/*
+        .org 0x4
+            .WORD    6,0,012,0           # INITIALIZE ERROR VECTORS
+        .org 060
+            .WORD    KBINT,0340          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
+        .org 0100
+            .WORD    CLINT,0300          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
+*/
+/*
         LC=.
         .=4+LC
                 .WORD    6,0,012,0           # INITIALIZE ERROR VECTORS
-        .=60+LC
+        .=060+LC
                 .WORD    KBINT,0340          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
-#        .=100+LC
-#                .WORD    CLINT,0300          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
-        .=500+LC                            # ALLOW FOR STACK SPACE
+        .=0100+LC
+                .WORD    CLINT,0300          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
+        .=0500+LC                            # ALLOW FOR STACK SPACE
+*/
 
-        .text
 start:
+VECS:   mov     $6,*$4                # INITIALIZE ERROR VECTORS
+        mov     $0,*$6
+        mov     $012,*$010
+        mov     $0,*$012
 # PRINT QUERY
         MOV     PC,SP
         TST     -(SP)               # INIT SP TO START
@@ -52,6 +66,12 @@ NEXTD:  MOV     R0,R1               #       FOR PRINT SUBROUTINE
         MOVB    *$ITIME+2,R1          #       FOR INCON SUBROUTINE
         JSR     PC,INCON            # CONVERT XX TO BINARY
         MOV     R2,*$MIN              #     AND STORE IN MIN
+
+ISRS:
+        mov     $KBINT,*$060          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
+        mov     $KBINT+2,*$0340       #
+#        mov     $CLINT,*$060          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
+#        mov     $CLINT+2,*$0300       #
 
 # SET INTERRUPT ENABLE BITS TO 1 AND WAIT
         MOV     $0100,*$KBSTAT         # SET KEYBOARD INTR. ENBLE BIT TO 1
@@ -95,7 +115,7 @@ EXIT1:  RTS     PC                  # EXIT
 
 # INCON
 # CONVERTS A 2-DIGIT DECIMAL NUMBER STORED IN ASCII IN R0 (UNITS) AND
-# R1 (TENS) INTO BINARY, THE RESULT IS PLACED IN R2, R3, R4, R5 UNCHANGED.
+# R1 (TENS) INTO BINARY, THE RESULT IS PLACED IN R2. R3, R4, R5 UNCHANGED.
 INCON:  BIC     $0177760,R0          # CONVERT (R0) INTO BINARY
         MOV     R0,R2               #     AND STORE IN R2
 TENS:   CMPB    R1,$'0              # (R1)='0? (ANY TENS LEFT?)
