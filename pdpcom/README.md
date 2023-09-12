@@ -2,7 +2,7 @@
 This software can connect to a PDP11 and serve as a dumb terminal to it. It also allows to upload 
 machine code in batch mode, created by e.g. MACRO-11 PDP11 assembler. 
 The machine code need to be in SIMH deposit format. 
-This can be created with my other tool, called lst2obj. TODO: give link
+This can be created with my other tool, called all2deposit, [Link](../all2deposit)
 
 *Normal Mode* is like a dumb Terminal to PDP. There is a *Command Mode* to enter commands.
 
