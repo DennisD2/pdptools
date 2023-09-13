@@ -71,15 +71,32 @@ NEXTD:  MOV     R0,R1               #       FOR PRINT SUBROUTINE
 ISRS:
         mov     $KBINT,*$060          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
         mov     $KBINT+2,*$0340       #
-#        mov     $CLINT,*$060          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
-#        mov     $CLINT+2,*$0300       #
+        mov     $CLINT,*$0100          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
+        mov     $CLINT+2,*$0300       #
 
 # SET INTERRUPT ENABLE BITS TO 1 AND WAIT
         MOV     $0100,*$KBSTAT         # SET KEYBOARD INTR. ENBLE BIT TO 1
-        ###MOV     $0100,*$CLSTAT         # SET CLOCK INTR. ENBLE BIT TO 1
+        MOV     $0100,*$CLSTAT         # SET CLOCK INTR. ENBLE BIT TO 1
 LOOP:   BR      LOOP                # WAIT FOR INTERRUPTS
 
-
+# CLOCK INTERRUPT HANDLER
+# UPDATES TIME EVERY 1/60 SECOND
+CLINT:  MOV     $TICK,R4            # SET PARAMETER FOR UPDATE S.R.
+        JSR     PC,UPDATE           # UPDATE CLOCK COUNT
+        CMP     *$HOUR,$12           # IS (HOUR)=12., OR LESS?
+        BLE     EXIT3               # IF SO, TIME UPDATE IS COMPLETE
+        SUB     $12,*$HOUR           # ELSE, CORRECT FOR 12-HOUR CLOCK
+EXIT3:  RTI                         # RETURN FROM INTERRUPT
+# UPDATE (RECURSIVE SUBROUTINE)
+# UPDATES TICK, SEC, MIN AND HOUR. ADDRESS OF UPDATED FIELD IS IN R4.
+UPDATE: INC     (R4)                # ((R4))=((R4))+1
+        CMP     (R4),$60           # ((R4))=60.?
+        BNE     EXIT4               # IF NOT, UPDATING IS COMPLETE
+        CLR     (R4)                # ELSE, ((R4))=0 (RESET COUNT)
+        TST     -(R4)               # (R4)=(R4)-2 (GO TO NEXT FIELD)
+        JSR     PC,UPDATE           # UPDATE NEXT FIELD
+EXIT4:  RTS     PC                  # EXIT
+        
 # KEYBOARD INTERRUPT HANDLER
 # PRINTS OUT TIME WHENEVER A CHARACTER IS TYPED IN.
 KBINT:  MOV     $TEMP,R0            # SAVE LATEST
