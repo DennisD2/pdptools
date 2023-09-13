@@ -1,185 +1,187 @@
-     .TITLE Time
-        .IDENT "V00.00"
+        .title time
+        .ident "v00.00"
 
-        .GLOBAL start
+        .global start
 
-#        STACK = 0x1000
+#        stack = 0x1000
 
-        KBSTAT=0177560
-        KBDATA=0177562
-        PRSTAT=0177564
-        PRDATA=0177566
-        CLSTAT=0177546
+        kbstat=0177560
+        kbdata=0177562
+        prstat=0177564
+        prdata=0177566
+        clstat=0177546
 
         .text
 /*
         .org 0x4
-            .WORD    6,0,012,0           # INITIALIZE ERROR VECTORS
+            .word    6,0,012,0           # initialize error vectors
         .org 060
-            .WORD    KBINT,0340          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
+            .word    kbint,0340          # initialize keyboard int. vec. (prior. 7)
         .org 0100
-            .WORD    CLINT,0300          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
+            .word    clint,0300          # initialize clock int. vec. (prior. 6)
 */
 /*
-        LC=.
-        .=4+LC
-                .WORD    6,0,012,0           # INITIALIZE ERROR VECTORS
-        .=060+LC
-                .WORD    KBINT,0340          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
-        .=0100+LC
-                .WORD    CLINT,0300          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
-        .=0500+LC                            # ALLOW FOR STACK SPACE
+        lc=.
+        .=4+lc
+                .word    6,0,012,0           # initialize error vectors
+        .=060+lc
+                .word    kbint,0340          # initialize keyboard int. vec. (prior. 7)
+        .=0100+lc
+                .word    clint,0300          # initialize clock int. vec. (prior. 6)
+        .=0500+lc                            # allow for stack space
 */
 
 start:
-VECS:   mov     $6,*$4                # INITIALIZE ERROR VECTORS
+vecs:   mov     $6,*$4              # initialize error vectors
         mov     $0,*$6
         mov     $012,*$010
         mov     $0,*$012
 
-# PRINT QUERY
-        MOV     PC,SP
-        TST     -(SP)               # INIT SP TO START
-        MOV     $QUERY,R0           # SET PARAMETERS
-        MOV     $ENDQ,R1            #       FOR PRINT SUBROUTINE
-        JSR     PC,PRINT            # PRINT LF, CR, QUERY TEXT
+# print query
+        mov     pc,sp
+        tst     -(sp)               # init sp to start
+        mov     $query,r0           # set parameters
+        mov     $endq,r1            #       for print subroutine
+        jsr     pc,print            # print lf, cr, query text
 
-# ACCEPT AND ECHO INITIAL TIME XXYY
-         MOV     $4,R2               # (R2)=DIGIT COUNT
-         MOV     $ITIME,R0           # SET PARAMETERS
-NEXTD:  MOV     R0,R1               #       FOR PRINT SUBROUTINE
-         TSTB    *$KBSTAT            # CHARACTER ENTERED?
-         BPL     .-4                 # IF NOT, KEEP TESTING
-         MOVB    *$KBDATA,(R0)       # ELSE, STORE DIGIT IN ITIME ARRAY
-         BICB    $0200,(R0)          # REMOVE CHECK BIT FROM DIGIT
-         JSR     PC,PRINT            # PRINT DIGIT
-         INC     R0                  # (R0)=(R0)+1
-         DEC     R2                  # (R2)=(R2)-1
-         BNE     NEXTD               # IF (R2) NOT 0, ACCEPT NEXT DIGIT
+# accept and echo initial time xxyy
+         mov     $4,r2              # (r2)=digit count
+         mov     $itime,r0          # set parameters
+nextd:  mov     r0,r1               #       for print subroutine
+         tstb    *$kbstat           # character entered?
+         bpl     .-4                # if not, keep testing
+         movb    *$kbdata,(r0)      # else, store digit in itime array
+         bicb    $0200,(r0)         # remove check bit from digit
+         jsr     pc,print           # print digit
+         inc     r0                 # (r0)=(r0)+1
+         dec     r2                 # (r2)=(r2)-1
+         bne     nextd              # if (r2) not 0, accept next digit
 
-# CONVERT INITIAL HOURS (XX) TO BINARY
-        MOVB    *$ITIME+1,R0          # SET PARAMETERS
-        MOVB    *$ITIME,R1            #       FOR INCON SUBROUTINE
-        JSR     PC,INCON            # CONVERT XX TO BINARY
-        MOV     R2,*$HOUR             #     AND STORE IN HOUR
-# CONVERT INITIAL MINUTES (YY) TO BINARY
-        MOVB    *$ITIME+3,R0          # SET PARAMETERS
-        MOVB    *$ITIME+2,R1          #       FOR INCON SUBROUTINE
-        JSR     PC,INCON            # CONVERT XX TO BINARY
-        MOV     R2,*$MIN              #     AND STORE IN MIN
+# convert initial hours (xx) to binary
+        movb    *$itime+1,r0        # set parameters
+        movb    *$itime,r1          #       for incon subroutine
+        jsr     pc,incon            # convert xx to binary
+        mov     r2,*$hour           #     and store in hour
+# convert initial minutes (yy) to binary
+        movb    *$itime+3,r0        # set parameters
+        movb    *$itime+2,r1        #       for incon subroutine
+        jsr     pc,incon            # convert xx to binary
+        mov     r2,*$min            #     and store in min
 
-ISRS:
-        mov     $KBINT,*$060          # INITIALIZE KEYBOARD INT. VEC. (PRIOR. 7)
-        mov     $KBINT+2,*$0340       #
-        mov     $CLINT,*$0100          # INITIALIZE CLOCK INT. VEC. (PRIOR. 6)
-        mov     $CLINT+2,*$0300       #
+isrs:
+        mov     $kbint,*$060        # initialize keyboard int. vec. (prior. 7)
+        mov     $kbint+2,*$0340     #
+        mov     $clint,*$0100       # initialize clock int. vec. (prior. 6)
+        mov     $clint+2,*$0300     #
 
-# SET INTERRUPT ENABLE BITS TO 1 AND WAIT
-        MOV     $0100,*$KBSTAT         # SET KEYBOARD INTR. ENBLE BIT TO 1
-        MOV     $0100,*$CLSTAT         # SET CLOCK INTR. ENBLE BIT TO 1
-LOOP:   BR      LOOP                # WAIT FOR INTERRUPTS
+# set interrupt enable bits to 1 and wait
+        mov     $0100,*$kbstat      # set keyboard intr. enble bit to 1
+        mov     $0100,*$clstat      # set clock intr. enble bit to 1
+loop:   br      loop                # wait for interrupts
 
-# CLOCK INTERRUPT HANDLER
-# UPDATES TIME EVERY 1/60 SECOND
-CLINT:  MOV     $TICK,R4            # SET PARAMETER FOR UPDATE S.R.
-        JSR     PC,UPDATE           # UPDATE CLOCK COUNT
-        CMP     *$HOUR,$12           # IS (HOUR)=12., OR LESS?
-        BLE     EXIT3               # IF SO, TIME UPDATE IS COMPLETE
-        SUB     $12,*$HOUR           # ELSE, CORRECT FOR 12-HOUR CLOCK
-EXIT3:  RTI                         # RETURN FROM INTERRUPT
-# UPDATE (RECURSIVE SUBROUTINE)
-# UPDATES TICK, SEC, MIN AND HOUR. ADDRESS OF UPDATED FIELD IS IN R4.
-UPDATE: INC     (R4)                # ((R4))=((R4))+1
-        CMP     (R4),$60           # ((R4))=60.?
-        BNE     EXIT4               # IF NOT, UPDATING IS COMPLETE
-        CLR     (R4)                # ELSE, ((R4))=0 (RESET COUNT)
-        TST     -(R4)               # (R4)=(R4)-2 (GO TO NEXT FIELD)
-        JSR     PC,UPDATE           # UPDATE NEXT FIELD
-EXIT4:  RTS     PC                  # EXIT
-        
-# KEYBOARD INTERRUPT HANDLER
-# PRINTS OUT TIME WHENEVER A CHARACTER IS TYPED IN.
-KBINT:  MOV     $TEMP,R0            # SAVE LATEST
-        MOV     *$HOUR,(R0)+          #    HOUR, MIN AND SEC
-        MOV     *$MIN,(R0)+           #       IN TEMP ARRAY TO
-        MOV     *$SEC,(R0)            #          PROTECT FROM CLINT
-        CLR     $0177776             # LOWER PRIORITY TO ACCEPT CLINT
-# PRINT MESSAGE
-        MOV     $MESSG,R0           # SET PARAMETERS
-        MOV     $ENDM,R1            #       FOR PRINT SUBROUTINE
-        JSR     PC,PRINT            # PRINT LF, CR, MESSAGE TEXT
-# CONVERT HOUR, MIN AND SEC TO ASCII
-        MOV     $TEMP,R2            # SET PARAMETERS
-        MOV     $OUTPUT,R3          #       FOR OUTCON SUBROUTINE
-        JSR     PC,OUTCON           # CONVERT HOUR TO ASCII (HH)
-        JSR     PC,OUTCON           # CONVERT MIN TO ASCII (MM)
-        JSR     PC,OUTCON           # CONVERT SEC TO ASCII (SS)
-# PRINT OUT HH:MM:SS AND RING BELL
-        MOV     $OUTPUT,R0          # SET PARAMETERS
-        MOV     $ENDO,R1            #       FOR PRINT SUBROUTINE
-        JSR     PC,PRINT            # PRINT OUTPUT ARRAY
-        TST     *$KBDATA              # CLEAR READY BIT IN KBSTST
-        RTI                         # RETURN FROM INTERRUPT
+# clock interrupt handler
+# updates time every 1/60 second
+clint:  mov     $tick,r4            # set parameter for update s.r.
+        jsr     pc,update           # update clock count
+        cmp     *$hour,$12          # is (hour)=12., or less?
+        ble     exit3               # if so, time update is complete
+        sub     $12,*$hour          # else, correct for 12-hour clock
+exit3:  rti                         # return from interrupt
+# update (recursive subroutine)
+# updates tick, sec, min and hour. address of updated field is in r4.
+update: inc     (r4)                # ((r4))=((r4))+1
+        cmp     (r4),$60            # ((r4))=60.?
+        bne     exit4               # if not, updating is complete
+        clr     (r4)                # else, ((r4))=0 (reset count)
+        tst     -(r4)               # (r4)=(r4)-2 (go to next field)
+        jsr     pc,update           # update next field
+exit4:  rts     pc                  # exit
 
-# PRINT
-PRINT:  MOV     R0,R5               # (R5)=CHARACTER ARRAY INDEX
-AGAIN:  CMP     R5,R1               # HAS STRING ENDED?
-        BHI     EXIT1               # IF SO, EXIT
-        TSTB    *$PRSTAT              # IS PRINTER READY?
-        BPL     .-4                 # IF NOT, KEEP TESTING
-        MOVB    (R5)+,*$PRDATA        # ELSE, PRINT (R5). (R5)=(R5)+1
-        BR      AGAIN               # PICK UP NEXT CHARACTER
-EXIT1:  RTS     PC                  # EXIT
+# keyboard interrupt handler
+# prints out time whenever a character is typed in.
+kbint:  mov     $temp,r0            # save latest
+        mov     *$hour,(r0)+        #    hour, min and sec
+        mov     *$min,(r0)+         #       in temp array to
+        mov     *$sec,(r0)          #          protect from clint
+        clr     $0177776            # lower priority to accept clint
+# print message
+        mov     $messg,r0           # set parameters
+        mov     $endm,r1            #       for print subroutine
+        jsr     pc,print            # print lf, cr, message text
+# convert hour, min and sec to ascii
+        mov     $temp,r2            # set parameters
+        mov     $output,r3          #       for outcon subroutine
+        jsr     pc,outcon           # convert hour to ascii (hh)
+        jsr     pc,outcon           # convert min to ascii (mm)
+        jsr     pc,outcon           # convert sec to ascii (ss)
+# print out hh:mm:ss and ring bell
+        mov     $output,r0          # set parameters
+        mov     $endo,r1            #       for print subroutine
+        jsr     pc,print            # print output array
+        tst     *$kbdata            # clear ready bit in kbstst
+        rti                         # return from interrupt
 
-# INCON
-# CONVERTS A 2-DIGIT DECIMAL NUMBER STORED IN ASCII IN R0 (UNITS) AND
-# R1 (TENS) INTO BINARY, THE RESULT IS PLACED IN R2. R3, R4, R5 UNCHANGED.
-INCON:  BIC     $0177760,R0          # CONVERT (R0) INTO BINARY
-        MOV     R0,R2               #     AND STORE IN R2
-TENS:   CMPB    R1,$'0              # (R1)='0? (ANY TENS LEFT?)
-        BEQ     EXIT2               # IF NOT, EXIT
-        ADD     $10,R2              # ELSE, (R2)=(R2)+10 DECIMAL
-        DEC     R1                  # (R1)=(R1)-1 (1 TEN LESS)
-        BR      TENS                # CHECK FOR TENS AGAIN
-EXIT2:  RTS     PC                  # EXIT
+# print
+print:  mov     r0,r5               # (r5)=character array index
+again:  cmp     r5,r1               # has string ended?
+        bhi     exit1               # if so, exit
+        tstb    *$prstat            # is printer ready?
+        bpl     .-4                 # if not, keep testing
+        movb    (r5)+,*$prdata      # else, print (r5). (r5)=(r5)+1
+        br      again               # pick up next character
+exit1:  rts     pc                  # exit
 
-# OUTCON
-# CONVERTS A BINARY NUMBER N (FROM 0 TO 60 DECIMAL) INTO A 2-DIGIT
-# ASCII NUMBER PQ. ADDRESS OF IN IS (R2). ADDRESSES OF P AND Q ARE (R3)
-# AND (R3)+1. BEFORE EXIT THE CONTENTS OF R1 IS INCREMENTED BY 2 AND OF
-# R3 BY 3. R4 AND R5 ARE UNCHANGED.
-OUTCON: MOV     (R2)+,R0            # (R0)=BINARY NUMBER (HOUR, MIN, SEC)
-        CLR     R1                  # INITIALIZE TENS
-MORE:   CMP     R0,$10            # ANY TENS LEFT IN R0?
-        BLT     UNITS               # IF NONE, PROCESS UNITS
-        INC     R1                  # ELSE, (R1)=(R1)+1 (ONE MORE TEN)
-        SUB     $10,R0             # (R0)=(R0)-10 DECIMAL
-        BR      MORE                # CHECK FOR MORE TENS
-UNITS:  ADD     $'0,R1              # CONVERT TENS TO ASCII
-        ADD     $'0,R0              # CONVERT UNITS TO ASCII
-        MOVB    R1,(R3)+            # STORE TENS IN OUTPUT ARRAY
-        MOVB    R0,(R3)+            # STORE UNITS IN OUTPUT ARRAY
-        INC     R3                  # SKIP COLON BYTE
-        RTS     PC                  # EXIT
+# incon
+# converts a 2-digit decimal number stored in ascii in r0 (units) and
+# r1 (tens) into binary, the result is placed in r2. r3, r4, r5 unchanged.
+incon:  bic     $0177760,r0         # convert (r0) into binary
+        mov     r0,r2               #     and store in r2
+tens:   cmpb    r1,$'0              # (r1)='0? (any tens left?)
+        beq     exit2               # if not, exit
+        add     $10,r2              # else, (r2)=(r2)+10 decimal
+        dec     r1                  # (r1)=(r1)-1 (1 ten less)
+        br      tens                # check for tens again
+exit2:  rts     pc                  # exit
+
+# outcon
+# converts a binary number n (from 0 to 60 decimal) into a 2-digit
+# ascii number pq. address of in is (r2). addresses of p and q are (r3)
+# and (r3)+1. before exit the contents of r1 is incremented by 2 and of
+# r3 by 3. r4 and r5 are unchanged.
+outcon: mov     (r2)+,r0            # (r0)=binary number (hour, min, sec)
+        clr     r1                  # initialize tens
+more:   cmp     r0,$10              # any tens left in r0?
+        blt     units               # if none, process units
+        inc     r1                  # else, (r1)=(r1)+1 (one more ten)
+        sub     $10,r0              # (r0)=(r0)-10 decimal
+        br      more                # check for more tens
+units:  add     $'0,r1              # convert tens to ascii
+        add     $'0,r0              # convert units to ascii
+        movb    r1,(r3)+            # store tens in output array
+        movb    r0,(r3)+            # store units in output array
+        inc     r3                  # skip colon byte
+        rts     pc                  # exit
 
         .data
-QUERY:  .BYTE   15,12               # CR, LF
-        .ASCII  "WHAT TIME IS IT?"  # QUERY TEXT
-ENDQ:   .ASCII  " "                 # END OF QUERY (SPACE)
+
+query:  .byte   15,12               # cr, lf
+        .ascii  "What time is it?"  # query text
+endq:   .ascii  " "                 # end of query (space)
         #
-MESSG:  .BYTE   15,12               # CR, LF
-        .ASCII  "AT THE BELL THE TIME WILL BE:" # MESSAGE TEXT
-ENDM:   .ASCII  " "                             # END OF MESSAGE (SPACE)
+messg:  .byte   15,12               # cr, lf
+        .ascii  "At the bell the time will be:" # message text
+endm:   .ascii  " "                             # end of message (space)
 #
-OUTPUT: .ASCII  "HH:MM:SS"          # STORAGE FOR HH:MM:SS
-ENDO:   .BYTE   7                   # END OF OUTPUT (BELL)
+output: .ascii  "hh:mm:ss"          # storage for hh:mm:ss
+endo:   .byte   7                   # end of output (bell)
 #
-ITIME:  .space   4                   # STORAGE FOR INITIAL TIME (XXYY)
+itime:  .space   4                  # storage for initial time (xxyy)
 #
-        .EVEN                       # ADJUST WORD BOUNDARY
-HOUR:   .space   2                   # STORAGE FOR HOURS (BINARY)
-MIN:    .space   2                   # STORAGE FOR MINUTES (BINARY)
-SEC:    .WORD   0                   # STORAGE FOR SECONDS (BINARY)
-TICK:   .WORD   0                   # STORAGE FOR TICK COUNT (BINARY)
-TEMP:   .space   3*2                   # TEMP. STORAGE FOR HOUR, MIN, SEC (BINARY)
+        .even                       # adjust word boundary
+hour:   .space   2                  # storage for hours (binary)
+min:    .space   2                  # storage for minutes (binary)
+sec:    .word   0                   # storage for seconds (binary)
+tick:   .word   0                   # storage for tick count (binary)
+temp:   .space   3*2                # temp. storage for hour, min, sec (binary)
+
         .end
