@@ -36,6 +36,7 @@ VECS:   mov     $6,*$4                # INITIALIZE ERROR VECTORS
         mov     $0,*$6
         mov     $012,*$010
         mov     $0,*$012
+
 # PRINT QUERY
         MOV     PC,SP
         TST     -(SP)               # INIT SP TO START
@@ -132,7 +133,7 @@ EXIT2:  RTS     PC                  # EXIT
 # R3 BY 3. R4 AND R5 ARE UNCHANGED.
 OUTCON: MOV     (R2)+,R0            # (R0)=BINARY NUMBER (HOUR, MIN, SEC)
         CLR     R1                  # INITIALIZE TENS
-MORE:   CMP     R0,#10            # ANY TENS LEFT IN R0?
+MORE:   CMP     R0,$10            # ANY TENS LEFT IN R0?
         BLT     UNITS               # IF NONE, PROCESS UNITS
         INC     R1                  # ELSE, (R1)=(R1)+1 (ONE MORE TEN)
         SUB     $10,R0             # (R0)=(R0)-10 DECIMAL
