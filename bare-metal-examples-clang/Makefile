@@ -1,6 +1,8 @@
 # Makefile for testing bae metal compile for PDP11 with gcc cross compiler
 # run "make test"
 
+all: test disassemble
+
 test:
 	# -nostdlib - do not link a standard c library (libc.a) to result
 	# -Ttext 0x200 - start text (code) section at 0x200 = 1000octal
@@ -14,13 +16,22 @@ test:
 	# create PTAP file from a.out binary
 	aout2lda --aout hello --lda hello.ptap --data-align 2 --text 0x200 --vector0
 	# Create deposit file from PTAP file
-	../all2deposit --in hello.ptap >hello.deposit
+	all2deposit --in hello.ptap >hello.deposit
 
 # disassemble created object files
 disassemble:
 	pdp11dasm crt0.o
 	pdp11dasm console.o
 	pdp11dasm hello.o
+	pdp11dasm special
 
 clean:
 	rm *.o hello *.ptap *.deposit
+
+special:
+	pdp11-aout-gcc -c -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.s console.c  ../bare-metal-examples-as/add.o  hello.c
+	pdp11-aout-gcc -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.o ../bare-metal-examples-as/add.o console.o hello.o -o special
+	# create PTAP file from a.out binary
+	aout2lda --aout special --lda special.ptap --data-align 2 --text 0x200 --vector0
+	# Create deposit file from PTAP file
+	all2deposit --in special.ptap >special.deposit

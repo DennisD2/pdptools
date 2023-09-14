@@ -12,6 +12,9 @@
         clstat=0177546
 
         .text
+
+        v_illadr=4
+        v_illins=010
 /*
         .org 0x4
             .word    6,0,012,0           # initialize error vectors

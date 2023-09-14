@@ -13,3 +13,10 @@ time:
 	aout2lda --aout time.out --lda time.ptap --data-align 2 --text 0x200 --vector0
 	pdp11dasm time.o
 	all2deposit --in time.ptap >time.deposit
+
+add:
+	pdp11-aout-as add.s -o add.o
+	pdp11-aout-ld -T ldaout.cmd add.o -o add.out
+	aout2lda --aout add.out --lda add.ptap --data-align 2 --text 0x200 --vector0
+	pdp11dasm add.o
+	all2deposit --in add.ptap >add.deposit
