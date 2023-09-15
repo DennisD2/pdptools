@@ -8,7 +8,7 @@ Compile with
 make asm_prov_and_use
 ```
 
-Call code:
+### Call code
 ```
 mov     $20,-(sp)      # push literal 20 dec. to stack    
 mov     $30,-(sp)      # push literal 30 dec. to stack   
@@ -16,7 +16,7 @@ jsr     pc,_addasm
 add     $4,sp          # fix stack pointer, i.e. remove parameters 20 and 30 from stack
 ```
 
-Function code:
+### Function code
 ```
 _addasm:
         clr     r0
@@ -33,11 +33,13 @@ Compile with
 make clang_uses_asm_fun
 ```
 
-Call code:
+### Call code
 ```
 int result = addasm(21,31);
+```
 
-In assembler:
+Disassembled C code:
+```
 000024: 012746 000037       	mov	#37,-(r6)		; f...
 000030: 012746 000025       	mov	#25,-(r6)		; f...
 000034: 004767 177760       	call	20			; w.p.
@@ -46,7 +48,7 @@ In assembler:
 The octal values 037 (=3*8+7=31) and 025 (=2x8+5=21) are pushed to stack (r6 is sp register).
 Stack is corrected after subroutine call by 4. 
 
-Function code:
+### Function code
 ```
         .globl _addasm
 
@@ -62,6 +64,9 @@ In assembler code, we just read the two values on stack and add to r0.
 0(sp), the last value on stack, is the return address for the subroutione call.
 So we need to access 2(sp) and 4(sp) to get the values.
 
+Note that the C function is called ```addasm```, while the
+assembler code exposes a global symbol ```_addasm```.
+
 Invoked files: prov_fun.s, use_asm_fun.c, (and crt0.s, console.c)
 
 ## Assembler calls C
@@ -70,7 +75,7 @@ Compile with
 make asm_uses_clang_fun
 ```
 
-Call code:
+### Call code
 ```
         .extern _printLine      # clang function declared as extern
         
@@ -79,19 +84,23 @@ Call code:
         jsr     pc,_printLine   # calling the clang function
 ```
 
-Function code:
+### Function code
 ```
 void printLine() {
     cons_puts("Hello World!\r\n");
 }
-
+```
 Disassembled code for the C function:
+```
 000032: 012746 000060       	mov	#60,-(r6)		; f.0.
 000036: 004767 177756       	call	20			; w.n.
 000042: 062706 000002       	add	#2,r6			; Fe..
 000046: 000207              	ret				; ..
 ```
 In the disassembled code for the C function, it looks that #60 is the string address.
+
+Again, note that the C function is called ```printLine```, while the
+assembler code references an external symbol ```_printLine```.
 
 **TODO: For a better example, have a function with a single int parameter**
 
