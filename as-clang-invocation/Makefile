@@ -8,6 +8,7 @@ clang_uses_asm_fun:
 	pdp11dasm prov_fun.o
 	# compile c code
 	pdp11-aout-gcc -c -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.s console.c use_asm_fun.c
+	pdp11dasm use_asm_fun.o
 	# link all object files
 	pdp11-aout-gcc -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.o prov_fun.o use_asm_fun.o -o c_use_asm_fun
 	# create PTAP file from a.out binary
@@ -21,6 +22,7 @@ asm_uses_clang_fun:
 	pdp11dasm use_c_fun.o
 	# compile c code
 	pdp11-aout-gcc -c -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.s console.c provide_asm_fun.c
+	pdp11dasm provide_asm_fun.o
 	# link all object files
 	pdp11-aout-gcc -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.o  console.o use_c_fun.o provide_asm_fun.o -o asm_use_c_fun
 	# create PTAP file from a.out binary
