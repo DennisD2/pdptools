@@ -1,7 +1,8 @@
 #
-# Example Makefile that shows how a assembler coded function is provided and cosumed by clang code
+# Example Makefile that shows how a assembler code calls clang code and vice versa
 #
 
+# c code using an assembler provided function
 clang_uses_asm_fun:
 	# assemble assembler code
 	pdp11-aout-as prov_fun.s -o prov_fun.o
@@ -16,6 +17,7 @@ clang_uses_asm_fun:
 	# Create deposit file from PTAP file
 	all2deposit --in c_use_asm_fun.ptap >c_use_asm_fun.deposit
 
+# assembler code using a c provided function
 asm_uses_clang_fun:
 	# assemble assembler code
 	pdp11-aout-as use_c_fun.s -o use_c_fun.o
@@ -30,6 +32,7 @@ asm_uses_clang_fun:
 	# Create deposit file from PTAP file
 	all2deposit --in asm_use_c_fun.ptap >asm_use_c_fun.deposit
 
+# assembler code using an assembler provided function
 asm_prov_and_use:
 	# assemble assembler code
 	pdp11-aout-as prov_fun_and_use_fun.s -o prov_fun_and_use_fun.o
