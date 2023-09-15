@@ -15,8 +15,8 @@ int add(int a, int b){
 }
 
 // this function will be called by assembler code
-void printLine() {
-    cons_puts("Hello World!\r\n");
+void printLine(char *message) {
+    cons_puts(message);
 }
 
 int main() {

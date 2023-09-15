@@ -12,7 +12,10 @@ _addasm:
         clr     r0
         add     2(sp),r0
         add     4(sp),r0
+
+        mov     $messg,-(sp)
         jsr     pc,_printLine      # calling the clang printLine() function
+        add     $2,sp
 
         mov     $20,-(sp)          # push literal 20 dec. to stack
         mov     $30,-(sp)          # push literal 30 dec. to stack
@@ -20,5 +23,11 @@ _addasm:
         add     $4,sp              # fix stack pointer, i.e. remove parameters 20 and 30 from stack
 
         rts     pc
+
+        .data
+
+messg:  .ascii  "Hello there!"     # message text
+        .byte   15,12              # cr, lf
+endm:   .byte  0                  # end of message (space)
 
         .end
