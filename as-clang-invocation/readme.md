@@ -10,18 +10,18 @@ make asm_prov_and_use
 
 Call code:
 ```
-mov     $20,-(sp)          
-mov     $30,-(sp)          
+mov     $20,-(sp)      # push literal 20 dec. to stack    
+mov     $30,-(sp)      # push literal 30 dec. to stack   
 jsr     pc,_addasm          
-sub     $4,sp
+add     $4,sp          # fix stack pointer, i.e. remove parameters 20 and 30 from stack
 ```
 
 Function code:
 ```
 _addasm:
         clr     r0
-        add     2(sp),r0
-        add     4(sp),r0
+        add     2(sp),r0  # reference literal 30 on stack
+        add     4(sp),r0  # reference literal 20 on stack
         rts     pc
 ```
 
