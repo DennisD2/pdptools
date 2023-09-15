@@ -124,6 +124,9 @@ Then try the connect with putty. A window should open and
 the program output should go there. simh commands can still
 be entered in the first terminal session.
 
+### Related
+See also https://mdfs.net/Docs/Comp/PDP11/SIMHpuTTY
+
 ## Bare metal approach
 I am following mainly these resources:
 
