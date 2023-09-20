@@ -128,6 +128,7 @@ func (proc *SubProcess) stdoutReader() {
 	var cmd string
 	var val = 0
 	var changed = false
+	var changedValue = 0
 
 	for proc.continueLoop > 0 {
 
@@ -160,11 +161,7 @@ func (proc *SubProcess) stdoutReader() {
 				}
 				oldValue := proc.state.r[registerIndex]
 				proc.state.r[registerIndex] = val
-				if oldValue != val {
-					changed = true
-				} else {
-					changed = false
-				}
+				changed, changedValue = proc.handleChange(oldValue, val, changed, changedValue)
 			}
 			if strings.HasPrefix(line, "SP") {
 				_, err := fmt.Sscanf(line, "%s %d", &cmd, &val)
@@ -177,11 +174,7 @@ func (proc *SubProcess) stdoutReader() {
 				}
 				oldValue := proc.state.sp
 				proc.state.sp = val
-				if oldValue != val {
-					changed = true
-				} else {
-					changed = false
-				}
+				changed, changedValue = proc.handleChange(oldValue, val, changed, changedValue)
 			}
 			if strings.HasPrefix(line, "SR") {
 				_, err := fmt.Sscanf(line, "%s %d", &cmd, &val)
@@ -194,19 +187,15 @@ func (proc *SubProcess) stdoutReader() {
 				}
 				oldValue := proc.state.sr
 				proc.state.sr = val
-				if oldValue != val {
-					changed = true
-				} else {
-					changed = false
-				}
+				changed, changedValue = proc.handleChange(oldValue, val, changed, changedValue)
 
 			}
 			printText := ""
 			if changed {
-				printText = fmt.Sprintf("%c[%c%c%s\r%c[%c%c\r", 0x1b, '7', 'm', line, 0x1b, '0', 'm')
+				printText = fmt.Sprintf("%c[%c%c%s%c[%c%c (%#o)", 0x1b, '7', 'm', line, 0x1b, '0', 'm', changedValue)
 			} else {
 				if hasLeadLineNumber(line) && lineNumberEqualsPC(line, proc.state.pc) {
-					printText = fmt.Sprintf("%c[%c%c%s\r%c[%c%c\r", 0x1b, '7', 'm', line, 0x1b, '0', 'm')
+					printText = fmt.Sprintf("%c[%c%c%s\r%c[%c%c", 0x1b, '7', 'm', line, 0x1b, '0', 'm')
 				} else {
 					printText = line
 				}
@@ -218,6 +207,16 @@ func (proc *SubProcess) stdoutReader() {
 			return
 		}
 	}
+}
+
+func (proc *SubProcess) handleChange(oldValue int, val int, changed bool, changedValue int) (bool, int) {
+	if oldValue != val {
+		changed = true
+		changedValue = val - oldValue
+	} else {
+		changed = false
+	}
+	return changed, changedValue
 }
 
 func hasLeadLineNumber(line string) bool {
