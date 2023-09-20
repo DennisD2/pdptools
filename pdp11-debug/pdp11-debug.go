@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// SubProcess connection to running subprocess
+// SubProcess connection to running pdp11-debug
 type SubProcess struct {
 	continueLoop int
 	dryMode      bool
@@ -31,21 +31,17 @@ type SubProcess struct {
 	windowSize   int
 }
 
-type regInfo struct {
-	value   int
-	changed bool
-}
-
 // MachineState state of running machine
 type MachineState struct {
 	sr int
 	pc int
 	sp int
-	r  []regInfo
+	r  []int
 }
 
 func main() {
-	regs := make([]regInfo, 6)
+	var err error
+	regs := make([]int, 6)
 
 	state := MachineState{
 		0,
@@ -70,12 +66,10 @@ func main() {
 		80, /* 26 for 25 line, 80 for 80 lines terminal  */
 	}
 
-	var err error
-
 	// Create sub process structure
 	proc.cmd = exec.Command(proc.command /*, proc.args*/)
 
-	// Prepare handling subprocess stdin; stdin will be served from localKeyboardReader()
+	// Prepare handling pdp11-debug stdin; stdin will be served from localKeyboardReader()
 	proc.stdin, err = proc.cmd.StdinPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -93,14 +87,14 @@ func main() {
 	}
 	go proc.localKeyboardReader()
 
-	// Handle subprocess stdout in go routine
+	// Handle pdp11-debug stdout in go routine
 	proc.stdout, err = proc.cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
 	go proc.stdoutReader()
 
-	// Handle subprocess stderr in go routine
+	// Handle pdp11-debug stderr in go routine
 	proc.stderr, err = proc.cmd.StderrPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -164,13 +158,11 @@ func (proc *SubProcess) stdoutReader() {
 				if proc.debug > 1 {
 					log.Printf("Rx line, Rx=%d, val=%#o (%v dec)", registerIndex, val, val)
 				}
-				oldValue := proc.state.r[registerIndex].value
-				proc.state.r[registerIndex].value = val
+				oldValue := proc.state.r[registerIndex]
+				proc.state.r[registerIndex] = val
 				if oldValue != val {
-					proc.state.r[registerIndex].changed = true
 					changed = true
 				} else {
-					proc.state.r[registerIndex].changed = false
 					changed = false
 				}
 			}
@@ -359,6 +351,7 @@ func (proc *SubProcess) localKeyboardReader() {
 	}
 }
 
+// dumpInfo dumps info regarding PC, registers and assembler codes in PC vicinity
 func (proc *SubProcess) dumpInfo(waitMillis int) {
 	io.WriteString(proc.stdin, "ex pc\n")
 	io.WriteString(proc.stdin, "ex r0-r5,sp,sr\n")
@@ -370,6 +363,7 @@ func (proc *SubProcess) dumpInfo(waitMillis int) {
 	io.WriteString(proc.stdin, exLine)
 }
 
+// calcCodeWindowValues calculate useful window (startaddress,endaddress) for code to dump
 func calcCodeWindowValues(pc int, windowSize int, windowStart *int, windowEnd *int, debug int) {
 	if pc-windowSize <= 0 {
 		*windowStart = 0

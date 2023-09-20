@@ -1,4 +1,4 @@
-module subprocess
+module pdp11-debug
 
 go 1.20
 
