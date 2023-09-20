@@ -27,6 +27,8 @@ asm_uses_clang_fun:
 	pdp11dasm provide_asm_fun.o
 	# link all object files
 	pdp11-aout-gcc -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.o  console.o use_c_fun.o provide_asm_fun.o -o asm_use_c_fun
+	pdp11dasm asm_use_c_fun
+	pdp11-aout-objdump -D asm_use_c_fun >asm_use_c_fun.objdump
 	# create PTAP file from a.out binary
 	aout2lda --aout asm_use_c_fun --lda asm_use_c_fun.ptap --data-align 2 --text 0x200 --vector0
 	# Create deposit file from PTAP file
@@ -43,3 +45,20 @@ asm_prov_and_use:
 	aout2lda --aout prov_fun_and_use_fun.out --lda prov_fun_and_use_fun.ptap --data-align 2 --text 0x200 --vector0
 	# Create deposit file from PTAP
 	all2deposit --in prov_fun_and_use_fun.ptap >prov_fun_and_use_fun.deposit
+
+libgdd-test:
+	# assemble assembler code
+	pdp11-aout-as libgdd.s -o libgdd.o
+	pdp11dasm libgdd.o
+	# compile c code
+	pdp11-aout-gcc -c -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.s console.c test-libgdd.c
+	pdp11dasm test-libgdd.o
+	# link all object files
+	pdp11-aout-gcc -nostdlib -Ttext 0x200 -m10 -Os -N -e _start crt0.o console.o libgdd.o test-libgdd.o -o test-libgdd
+	# create PTAP file from a.out binary
+	aout2lda --aout test-libgdd --lda test-libgdd.ptap --data-align 2 --text 0x200 --vector0
+	# Create deposit file from PTAP file
+	all2deposit --in test-libgdd.ptap >test-libgdd.deposit
+
+clean:
+	rm *.o *.deposit *.das c_use_asm_fun asm_use_c_fun test-libgdd

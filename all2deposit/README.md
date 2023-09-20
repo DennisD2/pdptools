@@ -132,7 +132,7 @@ I am following mainly these resources:
 
 * DEC-11-XPTSA-B-D.pdf "PDP-11 Paper Tape Software Handbook"
 * Bare metal compiling witch GCC
-  https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/
+  https://www.teckelworks.com/2020/03/c-programming-on-a-bare-metal-pdp-11/ and https://xw.is/wiki/Bare_metal_PDP-11_GCC_9.3.0_cross_compiler_instructions
 * Also info in bare metal compiling
   https://github.com/JamesHagerman/gcc-pdp11-aout/blob/master/README.md
 * Insights on PDP11 programming

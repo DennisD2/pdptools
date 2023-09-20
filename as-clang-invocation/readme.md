@@ -127,3 +127,4 @@ Invoked files: use_c_fun.s, provide_asm_fun.c, (and crt0.s , console.c)
 * https://www.learningpdp11.com/
 * GNU GCC 9.2.0 for PDP-11 https://github.com/JamesHagerman/gcc-pdp11-aout
 
+* GCC libgcc.a source code local location: ~/pdp-gcc/gcc-build/pdp11-aout/libgcc
