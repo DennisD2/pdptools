@@ -20,10 +20,10 @@ go run . --depositFile ./test-libgdd.deposit
 ```
 
 Next screen shows execution of some example code. A single step was executed (command 's').
-At the top, the registers PC,R0-R5 etc. are listed. There was a change in regiter SP since
+At the top, the registers PC,R0-R5 etc. are listed. There was a change in register SP since
 last executed command, this is highlighted. Also the value change is listed.
 
-Below that, commands are displayed around the currently executed command. Currently executed
+Below that, commands are displayed around the currently executed command. Next executed
 command is highlighted.
 ![](doc/images/pdp11-debug-01.png)
 
