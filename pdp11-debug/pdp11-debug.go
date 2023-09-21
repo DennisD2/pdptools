@@ -33,10 +33,12 @@ type SubProcess struct {
 
 // MachineState state of running machine
 type MachineState struct {
-	sr int
-	pc int
-	sp int
-	r  []int
+	sr     int
+	pc     int
+	sp     int
+	psw    int
+	pswStr string
+	r      []int
 }
 
 func main() {
@@ -47,6 +49,8 @@ func main() {
 		0,
 		0,
 		0,
+		0,
+		"",
 		regs,
 	}
 
@@ -63,7 +67,7 @@ func main() {
 		nil,
 		state,
 		false,
-		80, /* 26 for 25 line, 80 for 80 lines terminal  */
+		26, /* 26 for 25 line, 80 for 80 lines terminal  */
 	}
 
 	// Create sub process structure
@@ -129,7 +133,9 @@ func (proc *SubProcess) stdoutReader() {
 	var val = 0
 	var changed = false
 	var changedValue = 0
-
+	var changedPSW = false
+	var start, mid, stop int
+	//svar changedPSWStr = ""
 	for proc.continueLoop > 0 {
 
 		for scanner.Scan() {
@@ -190,6 +196,24 @@ func (proc *SubProcess) stdoutReader() {
 				changed, changedValue = proc.handleChange(oldValue, val, changed, changedValue)
 
 			}
+
+			if strings.HasPrefix(line, "PSW") {
+				var psw string
+				_, err := fmt.Sscanf(line, "%s %d %s", &cmd, &val, &psw)
+				index := strings.Index(line, "CM=")
+				purePSW := substr(line, index, len(line))
+				if err != nil {
+					log.Printf("Error reading PSW: ", err)
+				}
+				if proc.debug > 1 {
+					log.Printf("PSW line, PSW=%v (%#o)", purePSW, val)
+				}
+				oldPSW := proc.state.pswStr
+				proc.state.psw = val
+				proc.state.pswStr = purePSW
+
+				changedPSW, start, mid, stop = proc.handlePSWChange(oldPSW, purePSW, changed)
+			}
 			printText := ""
 			if changed {
 				printText = fmt.Sprintf("%c[%c%c%s%c[%c%c (%#o)", 0x1b, '7', 'm', line, 0x1b, '0', 'm', changedValue)
@@ -197,7 +221,16 @@ func (proc *SubProcess) stdoutReader() {
 				if hasLeadLineNumber(line) && lineNumberEqualsPC(line, proc.state.pc) {
 					printText = fmt.Sprintf("%c[%c%c%s\r%c[%c%c", 0x1b, '7', 'm', line, 0x1b, '0', 'm')
 				} else {
-					printText = line
+					if changedPSW {
+						index := strings.Index(line, "CM=")
+						prefix := substr(line, 0, index+start)
+						midfix := substr(line, index+mid, index+stop)
+						postfix := substr(line, index+stop, len(line))
+						printText = fmt.Sprintf("[%v,%v,%v] %s%c[%c%c%s%c[%c%c%s", start, mid, stop, prefix, 0x1b, '7', 'm', midfix, 0x1b, '0', 'm', postfix)
+						changedPSW = false
+					} else {
+						printText = line
+					}
 				}
 			}
 			fmt.Println(printText + "\r")
@@ -209,6 +242,7 @@ func (proc *SubProcess) stdoutReader() {
 	}
 }
 
+// handleChange handle change in register
 func (proc *SubProcess) handleChange(oldValue int, val int, changed bool, changedValue int) (bool, int) {
 	if oldValue != val {
 		changed = true
@@ -219,6 +253,35 @@ func (proc *SubProcess) handleChange(oldValue int, val int, changed bool, change
 	return changed, changedValue
 }
 
+// handlePSWChange handle change in PSW string
+func (proc *SubProcess) handlePSWChange(oldValue string, psw string, changed bool) (bool, int, int, int) {
+	start := 0
+	oldLen := len(oldValue)
+	newLen := len(psw)
+	minLen := oldLen
+	if newLen < minLen {
+		minLen = newLen
+	}
+	stop := minLen
+	mid := 0
+	if oldValue != psw {
+		changed = true
+		for start < minLen && oldValue[start] == psw[start] {
+			start++
+		}
+		mid = start + 1
+		for mid < minLen && oldValue[mid] != psw[mid] {
+			mid++
+		}
+		mid--
+		stop = mid + 1
+	} else {
+		changed = false
+	}
+	return changed, start, mid, stop
+}
+
+// hasLeadLineNumber true if line starts with a line number
 func hasLeadLineNumber(line string) bool {
 	// line starts with number after ^
 	// number ends with ':'
@@ -226,6 +289,7 @@ func hasLeadLineNumber(line string) bool {
 	return match
 }
 
+// lineNumberEqualsPC true if (disassembly) line is the line where PC points to
 func lineNumberEqualsPC(line string, pc int) bool {
 	var dummy string
 	var val = 0
@@ -352,8 +416,7 @@ func (proc *SubProcess) localKeyboardReader() {
 
 // dumpInfo dumps info regarding PC, registers and assembler codes in PC vicinity
 func (proc *SubProcess) dumpInfo(waitMillis int) {
-	io.WriteString(proc.stdin, "ex pc\n")
-	io.WriteString(proc.stdin, "ex r0-r5,sp,sr\n")
+	io.WriteString(proc.stdin, "ex pc,r0-r5,sp,sr,psw\n")
 	time.Sleep(time.Duration(waitMillis) * time.Millisecond)
 	var windowStart int
 	var windowEnd int
@@ -373,4 +436,19 @@ func calcCodeWindowValues(pc int, windowSize int, windowStart *int, windowEnd *i
 	if debug > 0 {
 		log.Printf("Window %#o to %#o\n", *windowStart, *windowEnd)
 	}
+}
+
+// substr substring from start to end
+func substr(s string, start, end int) string {
+	counter, startIdx := 0, 0
+	for i := range s {
+		if counter == start {
+			startIdx = i
+		}
+		if counter == end {
+			return s[startIdx:i]
+		}
+		counter++
+	}
+	return s[startIdx:]
 }
