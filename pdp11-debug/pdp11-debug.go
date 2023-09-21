@@ -52,12 +52,15 @@ func main() {
 		"Deposit file to debug")
 	startAddressPtr := flag.Int("startAddress", 01000,
 		"Start address for debugging")
+	windowSizePtr := flag.Int("windowSize", 25,
+		"number of assembler list lines")
 	flag.Parse()
 
 	fmt.Printf("--dry-run: %t\n", *dryRunPtr)
 	fmt.Printf("--debug: %d\n", *debugPtr)
 	fmt.Printf("--depositFile: %s\n", *depositPtr)
 	fmt.Printf("--startAddress: %#o (%d dec)\n", *startAddressPtr, *startAddressPtr)
+	fmt.Printf("--windowSize: %v\n", *windowSizePtr)
 
 	var err error
 	regs := make([]int, 6)
@@ -83,12 +86,12 @@ func main() {
 		nil,
 		state,
 		false,
-		26, /* 26 for 25 line, 80 for 80 lines terminal  */
-		"1;33",
+		*windowSizePtr, /* 26 for 25 line, 80 for 80 lines terminal */
+		"1;33",         /* terminal control codes. bold=1 ; yellow=33 */
 	}
 
 	// Create sub process structure
-	proc.cmd = exec.Command(proc.command /*, proc.args*/)
+	proc.cmd = exec.Command(proc.command)
 
 	// Prepare handling pdp11-debug stdin; stdin will be served from localKeyboardReader()
 	proc.stdin, err = proc.cmd.StdinPipe()

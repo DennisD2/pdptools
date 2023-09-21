@@ -32,3 +32,7 @@ Last executed command (CMP R0,#620) changed the N bit in PSW. This is highlighte
 
 With ':' command, it is possible to enter a SIMH command anytime. Here, I entered 'br 1016'.
 ![](doc/images/pdp11-debug-03.png)
+
+
+## Related
+ASCII terminal codes https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797#erase-functions
