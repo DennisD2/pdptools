@@ -3,6 +3,7 @@ package main
 import "C"
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"golang.org/x/term"
 	"io"
@@ -19,7 +20,6 @@ type SubProcess struct {
 	continueLoop int
 	dryMode      bool
 	debug        int
-	batch        bool
 	command      string
 	args         string
 	cmd          *exec.Cmd
@@ -42,6 +42,22 @@ type MachineState struct {
 }
 
 func main() {
+	fmt.Println("PDP11 debug shell")
+	dryRunPtr := flag.Bool("dry-run", false,
+		"Debug level")
+	debugPtr := flag.Int("debug", 0,
+		"Debug level")
+	depositPtr := flag.String("depositFile", "test.deposit",
+		"Deposit file to debug")
+	startAddressPtr := flag.Int("startAddress", 01000,
+		"Start address for debugging")
+	flag.Parse()
+
+	fmt.Printf("--dry-run: %t\n", *dryRunPtr)
+	fmt.Printf("--debug: %d\n", *debugPtr)
+	fmt.Printf("--depositFile: %s\n", *depositPtr)
+	fmt.Printf("--startAddress: %#o (%d dec)\n", *startAddressPtr, *startAddressPtr)
+
 	var err error
 	regs := make([]int, 6)
 
@@ -56,9 +72,8 @@ func main() {
 
 	proc := SubProcess{
 		1,
-		true,
-		0,
-		false,
+		*dryRunPtr,
+		*debugPtr,
 		"pdp11",
 		".",
 		nil,
@@ -80,15 +95,13 @@ func main() {
 	}
 
 	// Handle local keyboard stdin: raw terminal input, handles by go routine
-	if !proc.batch {
-		// switch stdin into 'raw' mode
-		oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		defer term.Restore(int(os.Stdin.Fd()), oldState)
+	// switch stdin into 'raw' mode
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
 	go proc.localKeyboardReader()
 
 	// Handle pdp11-debug stdout in go routine
@@ -111,10 +124,13 @@ func main() {
 	}
 
 	// Init machine
-	io.WriteString(proc.stdin, "do test-libgdd.deposit\n")
+	initCmdString := fmt.Sprintf("do %s\n", *depositPtr)
+	io.WriteString(proc.stdin, initCmdString)
 	log.Println("---------------------------\n")
-	io.WriteString(proc.stdin, "break 1000\n")
-	io.WriteString(proc.stdin, "run 1000\n")
+	initCmdString = fmt.Sprintf("break %#o\n", *startAddressPtr)
+	io.WriteString(proc.stdin, initCmdString)
+	initCmdString = fmt.Sprintf("run %#o\n", *startAddressPtr)
+	io.WriteString(proc.stdin, initCmdString)
 
 	// Init machine state
 	proc.dumpInfo(1500)
@@ -226,7 +242,7 @@ func (proc *SubProcess) stdoutReader() {
 						prefix := substr(line, 0, index+start)
 						midfix := substr(line, index+mid, index+stop)
 						postfix := substr(line, index+stop, len(line))
-						printText = fmt.Sprintf("[%v,%v,%v] %s%c[%c%c%s%c[%c%c%s", start, mid, stop, prefix, 0x1b, '7', 'm', midfix, 0x1b, '0', 'm', postfix)
+						printText = fmt.Sprintf("%s%c[%c%c%s%c[%c%c%s", prefix, 0x1b, '7', 'm', midfix, 0x1b, '0', 'm', postfix)
 						changedPSW = false
 					} else {
 						printText = line
