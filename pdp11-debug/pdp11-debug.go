@@ -423,7 +423,7 @@ func (proc *SubProcess) localKeyboardReader() {
 		}
 
 		if cbuf[0] == ':' {
-			log.Println("----- (q) Enter SIMH Command-------------------\n\r")
+			log.Println("----- (:) Enter SIMH Command-------------------\n\r")
 			proc.enterCommand = true
 			i := 0
 			for i < len(cmdLine) {
