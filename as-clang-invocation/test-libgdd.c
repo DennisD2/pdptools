@@ -128,7 +128,7 @@ int main() {
     //volatile int res = a * b;
     // volatile int res1 = b / a;
     //volatile int res = b % a;
-    printInt16(-0);
+    printInt16(12456);
     //printInt(res);
     //printLine((char*)res);
 	//int result = addasm(21,31);

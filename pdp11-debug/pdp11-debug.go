@@ -17,18 +17,19 @@ import (
 
 // SubProcess connection to running pdp11-debug
 type SubProcess struct {
-	continueLoop int
-	dryMode      bool
-	debug        int
-	command      string
-	args         string
-	cmd          *exec.Cmd
-	stdin        io.WriteCloser
-	stdout       io.Reader
-	stderr       io.Reader
-	state        MachineState
-	enterCommand bool
-	windowSize   int
+	continueLoop  int
+	dryMode       bool
+	debug         int
+	command       string
+	args          string
+	cmd           *exec.Cmd
+	stdin         io.WriteCloser
+	stdout        io.Reader
+	stderr        io.Reader
+	state         MachineState
+	enterCommand  bool
+	windowSize    int
+	highlightCode string
 }
 
 // MachineState state of running machine
@@ -83,6 +84,7 @@ func main() {
 		state,
 		false,
 		26, /* 26 for 25 line, 80 for 80 lines terminal  */
+		"1;33",
 	}
 
 	// Create sub process structure
@@ -232,17 +234,18 @@ func (proc *SubProcess) stdoutReader() {
 			}
 			printText := ""
 			if changed {
-				printText = fmt.Sprintf("%c[%c%c%s%c[%c%c (%#o)", 0x1b, '7', 'm', line, 0x1b, '0', 'm', changedValue)
+				printText = fmt.Sprintf("%c[%s%c%s%c[%c%c (%#o)", 0x1b, proc.highlightCode, 'm', line, 0x1b, '0', 'm', changedValue)
 			} else {
 				if hasLeadLineNumber(line) && lineNumberEqualsPC(line, proc.state.pc) {
-					printText = fmt.Sprintf("%c[%c%c%s\r%c[%c%c", 0x1b, '7', 'm', line, 0x1b, '0', 'm')
+					printText = fmt.Sprintf("%c[%s%c%s\r%c[%c%c", 0x1b, proc.highlightCode, 'm', line, 0x1b, '0', 'm')
 				} else {
 					if changedPSW {
 						index := strings.Index(line, "CM=")
 						prefix := substr(line, 0, index+start)
 						midfix := substr(line, index+mid, index+stop)
 						postfix := substr(line, index+stop, len(line))
-						printText = fmt.Sprintf("%s%c[%c%c%s%c[%c%c%s", prefix, 0x1b, '7', 'm', midfix, 0x1b, '0', 'm', postfix)
+						//printText = fmt.Sprintf("%s%c[%c%c%s%c[%c%c%s", prefix, 0x1b, '7', 'm', midfix, 0x1b, '0', 'm', postfix)
+						printText = fmt.Sprintf("%s%c[%s%c%s%c[%c%c%s", prefix, 0x1b, proc.highlightCode, 'm', midfix, 0x1b, '0', 'm', postfix)
 						changedPSW = false
 					} else {
 						printText = line
@@ -384,14 +387,18 @@ func (proc *SubProcess) localKeyboardReader() {
 				log.Println("----- (s) Single Step --------------------------\n")
 				io.WriteString(proc.stdin, "s\n")
 
+				// Erase screen
 				fmt.Printf("%c", 0x1b)
 				fmt.Printf("%c", '[')
 				fmt.Printf("%c", '2')
 				fmt.Printf("%c", 'J')
 
+				// Home position
 				fmt.Printf("%c", 0x1b)
 				fmt.Printf("%c", '[')
 				fmt.Printf("%c", 'H')
+
+				// dump state
 				proc.dumpInfo(1)
 			}
 
@@ -415,8 +422,8 @@ func (proc *SubProcess) localKeyboardReader() {
 			}
 		}
 
-		if cbuf[0] == '>' {
-			log.Println("----- (q) Enter SIMH Command-------------------\n")
+		if cbuf[0] == ':' {
+			log.Println("----- (q) Enter SIMH Command-------------------\n\r")
 			proc.enterCommand = true
 			i := 0
 			for i < len(cmdLine) {
@@ -424,7 +431,7 @@ func (proc *SubProcess) localKeyboardReader() {
 				i++
 			}
 			cmdLinePtr = 0
-			fmt.Print(">")
+			fmt.Print(":")
 		}
 
 	}
